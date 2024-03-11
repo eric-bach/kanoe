@@ -6,8 +6,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "deploy": "npx cdk deploy -c appName=axela -c envName=dev --require-approval never --profile bach-dev",
-    "deploy-prod": "npm run build-prod --prefix ../frontend && npx cdk deploy -c appName=axela -c envName=prod --require-approval never --profile bach-prod",
+    "deploy": "npx cdk deploy --all -c appName=axela -c envName=dev --require-approval never --profile bach-dev",
+    "deploy-prod": "npm run build-prod --prefix ../frontend && npx cdk deploy --all -c appName=axela -c envName=prod --require-approval never --profile bach-prod",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"
