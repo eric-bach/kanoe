@@ -1,7 +1,7 @@
 #### TODOs
 
 - Create mock APIs to get fixed member info based on any member number
-  GET /customer/{id}
+  GET /customer/{memberNumber}
 - Integrate mock API in chat
 - Add mock APIs to get reward dollar balances/transactions
 

@@ -13,6 +13,7 @@ import * as path from 'path';
 interface AxelaStackProps extends StackProps {
   appName: string;
   envName: string;
+  restApiUrl: string;
 }
 
 export class AxelaStack extends Stack {
@@ -53,16 +54,10 @@ export class AxelaStack extends Stack {
       timeout: Duration.seconds(30),
       retryAttempts: 0,
       environment: {
-        BUCKET_NAME: bucket.bucketName,
+        API_GATEWAY_URL: props.restApiUrl,
       },
       layers: [powertoolsLayer],
     });
-    agentFunction.addToRolePolicy(
-      new PolicyStatement({
-        actions: ['s3:*'],
-        resources: ['*'],
-      })
-    );
 
     /**********
       Bedrock 

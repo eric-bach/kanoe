@@ -19,6 +19,6 @@ const baseProps: cdk.StackProps = {
   },
 };
 
-new AxelaApiStack(app, `${appName}-api-${envName}`, { ...baseProps, appName, envName });
+const api = new AxelaApiStack(app, `${appName}-api-${envName}`, { ...baseProps, appName, envName });
 
-new AxelaStack(app, `${appName}-agents-${envName}`, { ...baseProps, appName, envName });
+new AxelaStack(app, `${appName}-agents-${envName}`, { ...baseProps, appName, envName, restApiUrl: api.restApiUrl });
