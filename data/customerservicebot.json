@@ -76,22 +76,22 @@
     "/place_order": {
       "get": {
         "summary": "Sub task to place an order on behalf of the customer",
-        "description": "Place an order for a shoe by creating an Order record and updating inventory in the database",
-        "operationId": "placeshoeOrder",
+        "description": "Place an order for a trip by creating an Order record and updating inventory in the database",
+        "operationId": "placeTripORder",
         "parameters": [
           {
-            "name": "ShoeID",
+            "name": "TripId",
             "in": "query",
-            "description": "Shoe ID to place an order",
+            "description": "Trip Id to place an order",
             "required": true,
             "schema": {
               "type": "int"
             }
           },
           {
-            "name": "CustomerID",
+            "name": "MemberId",
             "in": "query",
-            "description": "Customer ID to place an order",
+            "description": "Nenber Id to place an order",
             "required": true,
             "schema": {
               "type": "int"
@@ -120,36 +120,32 @@
     },
     "/check_inventory": {
       "get": {
-        "summary": "Returns all details related to shoes, including inventory details",
-        "description": "Checks inventory for shoes and returns all availale information about available shoes, including shoe ID, shoe colors, inventory, best fit activity, style description and price ",
-        "operationId": "checkShoeInventory",
+        "summary": "Returns all details related to trip, including availability details",
+        "description": "Checks inventory for trips and returns all availale information about available trips, including trip ID, trip destination, inventory, style and price ",
+        "operationId": "checkTripInventory",
         "responses": {
           "200": {
-            "description": "Returns Shoe information",
+            "description": "Returns Trip information",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "ShoeID": {
+                    "TripId": {
                       "type": "int",
-                      "description": "This is the shoe ID for this shoe"
+                      "description": "This is the trip ID for this trip"
                     },
-                    "BestFitActivity": {
+                    "Description": {
                       "type": "string",
-                      "description": "Best fit activity for this shoe"
+                      "description": "Detailed description of the trip"
                     },
-                    "StyleDesc": {
+                    "Destination": {
                       "type": "string",
-                      "description": "Detailed description of the shoe"
-                    },
-                    "ShoeColors": {
-                      "type": "string",
-                      "description": "The colors of this shoe"
+                      "description": "The destination of this trip"
                     },
                     "Price": {
                       "type": "string",
-                      "description": "Price of this shoe"
+                      "description": "Price of this trip"
                     },
                     "InvCount": {
                       "type": "int",
