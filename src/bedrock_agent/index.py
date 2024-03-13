@@ -29,7 +29,14 @@ def handler(event, context):
         logger.info("Response", response.json())
 
         data = response.json()
-
+    elif (api_path == '/rewards/balance/{memberId}'):
+        data = {}
+    elif (api_path == '/trips/{locationName}'):
+        data = {}
+    elif (api_path == '/bookings/{memberId}'):
+        data = {}
+    elif (api_path == '/bookings'):
+        data = {}
 
     # https://docs.aws.amazon.com/bedrock/latest/userguide/agents-lambda.html
     result = {
