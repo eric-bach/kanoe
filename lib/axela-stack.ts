@@ -109,7 +109,7 @@ export class AxelaStack extends Stack {
     const actionGroup = new bedrock.AgentActionGroup(this, 'AgentActionGroup', {
       actionGroupName: 'RetailAgentGroup',
       agent,
-      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'customerservicebot.json'),
+      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'member_service.json'),
       actionGroupState: 'ENABLED',
       actionGroupExecutor: agentFunction,
       shouldPrepareAgent: true,

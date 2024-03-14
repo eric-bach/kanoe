@@ -1,0 +1,160 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Travel Services Bot API",
+    "version": "1.0.0",
+    "description": "Travel service APIs for a retail store selling and booking trips"
+  },
+  "paths": {
+    "/trips/{locationName}": {
+      "get": {
+        "summary": "Get available trips",
+        "description": "Based on the provided location name, return trips available for that location",
+        "operationId": "getAvailableTrips",
+        "parameters": [
+          {
+            "name": "LocationName",
+            "in": "path",
+            "description": "Location Name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get available trips",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "int",
+                        "description": "This is the Trip ID used to book the trip"
+                      },
+                      "location": {
+                        "type": "string",
+                        "description": "The location of the trip"
+                      },
+                      "price": {
+                        "type": "decimal",
+                        "description": "The price of the trip"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{memberId}": {
+      "get": {
+        "summary": "Get existing bookings for a member",
+        "description": "Based on the member Id, return the existing bookings for that member",
+        "operationId": "getBookings",
+        "parameters": [
+          {
+            "name": "MemberId",
+            "in": "query",
+            "description": "Member Id",
+            "required": true,
+            "schema": {
+              "type": "int"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get existing bookings for a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "memberId": {
+                        "type": "int",
+                        "description": "Member Id"
+                      },
+                      "tripId": {
+                        "type": "int",
+                        "description": "Trip Id"
+                      },
+                      "location": {
+                        "type": "string",
+                        "description": "The trip location"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings": {
+      "post": {
+        "summary": "Create booking for a member",
+        "description": "Create a booking for a member using the member Id and trip Id",
+        "operationId": "createBooking",
+        "parameters": [
+          {
+            "name": "MemberId",
+            "in": "query",
+            "description": "Member Id",
+            "required": true,
+            "schema": {
+              "type": "int"
+            }
+          },
+          {
+            "name": "TripId",
+            "in": "query",
+            "description": "Trip Id",
+            "required": true,
+            "schema": {
+              "type": "int"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Create booking for a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "memberId": {
+                        "type": "int",
+                        "description": "Member Id"
+                      },
+                      "tripId": {
+                        "type": "int",
+                        "description": "Trip Id"
+                      },
+                      "location": {
+                        "type": "string",
+                        "description": "The trip location"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

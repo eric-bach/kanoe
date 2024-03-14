@@ -21,7 +21,7 @@ export class AxelaApiStack extends Stack {
 
     // GET /member/{memberNumber}
 
-    const mockIntegration = new MockIntegration({
+    const getMemberMockIntegration = new MockIntegration({
       requestTemplates: {
         'application/json': '{"statusCode": 200}',
       },
@@ -36,9 +36,9 @@ export class AxelaApiStack extends Stack {
       ],
     });
 
-    const resource = restapi.root.addResource('member').addResource('{memberNumber}');
+    const getMember = restapi.root.addResource('member').addResource('{memberNumber}');
 
-    resource.addMethod('GET', mockIntegration, {
+    getMember.addMethod('GET', getMemberMockIntegration, {
       methodResponses: [
         {
           statusCode: '200',
@@ -48,6 +48,39 @@ export class AxelaApiStack extends Stack {
         },
       ],
     });
+
+    // GET /rewards/balance/{memberId}
+
+    const getRewardDollarBalanceMockIntegration = new MockIntegration({
+      requestTemplates: {
+        'application/json': '{"statusCode": 200}',
+      },
+      integrationResponses: [
+        {
+          statusCode: '200',
+          responseTemplates: {
+            'application/json': '{"memberId": 2175107, "balance": 153.87}',
+          },
+        },
+      ],
+    });
+
+    const getRewardDollarBalance = restapi.root.addResource('rewards').addResource('balance').addResource('{memberId}');
+
+    getRewardDollarBalance.addMethod('GET', getRewardDollarBalanceMockIntegration, {
+      methodResponses: [
+        {
+          statusCode: '200',
+          responseModels: {
+            'application/json': Model.EMPTY_MODEL,
+          },
+        },
+      ],
+    });
+
+    /**********
+     Outputs
+     **********/
 
     new CfnOutput(this, 'ApiGatewayUrl', { value: restapi.url });
 

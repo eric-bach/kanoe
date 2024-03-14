@@ -1,0 +1,117 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Member Services Bot API",
+    "version": "1.0.0",
+    "description": "Member service APIs for getting member information and reward dollar balance"
+  },
+  "paths": {
+    "/member/{memberNumber}": {
+      "get": {
+        "summary": "Get member information",
+        "description": "Based on provided member number, return member information like member ID, first name, and last name",
+        "operationId": "getMemberInfo",
+        "parameters": [
+          {
+            "name": "MemberNumber",
+            "in": "path",
+            "description": "Member Number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get member information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "int",
+                        "description": "This is the Member ID used to place the order"
+                      },
+                      "addressLine1": {
+                        "type": "string",
+                        "description": "Member billing address line 1"
+                      },
+                      "addressLine2": {
+                        "type": "string",
+                        "description": "Member billing address line 2"
+                      },
+                      "city": {
+                        "type": "string",
+                        "description": "Member billing city"
+                      },
+                      "province": {
+                        "type": "string",
+                        "description": "Member billing state"
+                      },
+                      "postalCode": {
+                        "type": "string",
+                        "description": "Member billing postal code"
+                      },
+                      "firstName": {
+                        "type": "string",
+                        "description": "Member first name"
+                      },
+                      "lastName": {
+                        "type": "string",
+                        "description": "Member last name"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rewards/balance/{memberId}": {
+      "get": {
+        "summary": "Sub task to get member's reward dollar balance",
+        "description": "Once we have the member Id, we can get the reward dollar balance for the member",
+        "operationId": "getRewardBalance",
+        "parameters": [
+          {
+            "name": "MemberId",
+            "in": "query",
+            "description": "Member Id",
+            "required": true,
+            "schema": {
+              "type": "int"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get member reward dollar balance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "memberId": {
+                      "type": "int",
+                      "description": "Member Id"
+                    },
+                    "balance": {
+                      "type": "decimal",
+                      "description": "Member reward dollar balance"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

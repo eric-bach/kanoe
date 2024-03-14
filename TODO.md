@@ -1,6 +1,6 @@
 #### TODOs
 
-- Look at creating Bedrock IaC with
+- Figure out how to create second Agent Group with IaC
   https://github.com/awslabs/generative-ai-cdk-constructs
   https://github.com/aws-samples/agentsforbedrock-retailagent/tree/main
   https://github.com/PieterjanCriel/bedrock-agents-cdk/blob/main/lib/agentStack.ts
