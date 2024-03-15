@@ -45,9 +45,23 @@ export class AxelaStack extends Stack {
       includeExtras: true,
     });
 
-    const agentFunction = new PythonFunction(this, 'BedrockAgentFunction', {
-      functionName: `${props.appName}-retail-${props.envName}`,
-      entry: 'src/bedrock_agent',
+    const memberAgentFunction = new PythonFunction(this, 'MemberAgentFunction', {
+      functionName: `${props.appName}-member-${props.envName}`,
+      entry: 'src/member_agent',
+      runtime: Runtime.PYTHON_3_10,
+      architecture: Architecture.ARM_64,
+      memorySize: 384,
+      timeout: Duration.seconds(30),
+      retryAttempts: 0,
+      environment: {
+        API_GATEWAY_URL: props.restApiUrl,
+      },
+      layers: [powertoolsLayer],
+    });
+
+    const travelAgentFunction = new PythonFunction(this, 'TravelAgentFunction', {
+      functionName: `${props.appName}-travel-${props.envName}`,
+      entry: 'src/travel_agent',
       runtime: Runtime.PYTHON_3_10,
       architecture: Architecture.ARM_64,
       memorySize: 384,
@@ -106,19 +120,35 @@ export class AxelaStack extends Stack {
       })
     );
 
-    const actionGroup = new bedrock.AgentActionGroup(this, 'AgentActionGroup', {
-      actionGroupName: 'RetailAgentGroup',
+    const memberAgentGroup = new bedrock.AgentActionGroup(this, 'MemberAgentGroup', {
+      actionGroupName: 'MemberAgentGroup',
       agent,
       apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'member_service.json'),
       actionGroupState: 'ENABLED',
-      actionGroupExecutor: agentFunction,
+      actionGroupExecutor: memberAgentFunction,
       shouldPrepareAgent: true,
     });
     // Ensure bucket deployment completest before agent action group so the files are available
-    actionGroup.node.addDependency(bucketDeployment);
+    memberAgentGroup.node.addDependency(bucketDeployment);
+
+    const travelAgentGroup = new bedrock.AgentActionGroup(this, 'TravelAgentGroup', {
+      actionGroupName: 'TravelAgentGroup',
+      agent,
+      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'travel_service.json'),
+      actionGroupState: 'ENABLED',
+      actionGroupExecutor: travelAgentFunction,
+      shouldPrepareAgent: true,
+    });
+    travelAgentGroup.node.addDependency(bucketDeployment);
 
     // Grant Bedrock Agent permissions to invoke the Lambda function
-    agentFunction.addPermission('InvokeFunction', {
+    memberAgentFunction.addPermission('InvokeFunction', {
+      principal: new ServicePrincipal('bedrock.amazonaws.com'),
+      action: 'lambda:InvokeFunction',
+      sourceArn: agent.agentArn,
+    });
+    // Grant Bedrock Agent permissions to invoke the Lambda function
+    travelAgentFunction.addPermission('InvokeFunction', {
       principal: new ServicePrincipal('bedrock.amazonaws.com'),
       action: 'lambda:InvokeFunction',
       sourceArn: agent.agentArn,
