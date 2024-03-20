@@ -78,7 +78,7 @@ export class AxelaApiStack extends Stack {
       ],
     });
 
-    // GET /airports/{city}
+    // GET /airport/{city}
 
     const getAirportCodeMockIntegration = new MockIntegration({
       requestTemplates: {
@@ -148,7 +148,7 @@ export class AxelaApiStack extends Stack {
         {
           statusCode: '200',
           responseTemplates: {
-            'application/json': '{"memberId": "123456", "flightId": "WS10"}',
+            'application/json': '{"memberId": "123456", "flightId": "WS10", "bookingId": "ABC123"}',
           },
         },
       ],

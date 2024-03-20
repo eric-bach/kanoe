@@ -26,7 +26,7 @@ def handler(event, context):
         response = requests.get(url, headers=headers)
         response.raise_for_status()
 
-        logger.info("Response", response.json())
+        logger.info(response.json())
 
         data = response.json()
     elif (api_path == '/rewards/balance/{memberId}'):
@@ -42,7 +42,7 @@ def handler(event, context):
         response = requests.get(url, headers=headers)
         response.raise_for_status()
 
-        logger.info("Response", response.json())
+        logger.info(response.json())
 
         data = response.json()
 
@@ -64,6 +64,6 @@ def handler(event, context):
         }
     }
 
-    logger.info("Result", result)
+    logger.info(result)
 
     return result

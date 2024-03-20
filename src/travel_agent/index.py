@@ -13,7 +13,9 @@ def handler(event, context):
     data = "Sorry, please try again later."
 
     parameters = event['parameters']
-    if (api_path == '/airports/{city}'):
+    if (api_path == '/airport/{city}'):
+        logger.info('Get airport code by city')
+        
         for parameter in parameters:
             if parameter["name"] == "City":
                 city = parameter["value"]
@@ -26,10 +28,12 @@ def handler(event, context):
         response = requests.get(url, headers=headers)
         response.raise_for_status()
 
-        logger.info("Response", response.json())
+        logger.info(response.json())
 
         data = response.json()
     elif (api_path == '/flights/{departureId}/{arrivalId}/{date}'):
+        logger.info('Get available flights')
+        
         for parameter in parameters:
             if parameter["name"] == "DepartureId":
                 departureId = parameter["value"]
@@ -46,25 +50,27 @@ def handler(event, context):
         response = requests.get(url, headers=headers)
         response.raise_for_status()
 
-        logger.info("Response", response.json())
+        logger.info(response.json())
 
         data = response.json()
     elif (api_path == '/flights/bookings/{id}'):
+        logger.info('Booking flight')
+        
         for parameter in parameters:
             if parameter["name"] == "MemberId":
                 memberId = parameter["value"]
             if parameter["name"] == "Id":
                 flightId = parameter["value"]
             
-        url = f"{API_GATEWAY_URL}bookings/{flightId}"
+        url = f"{API_GATEWAY_URL}flights/bookings/{flightId}"
         headers = {
             "content-type": "application/json"
         }
 
-        response = requests.get(url, headers=headers)
+        response = requests.post(url, headers=headers)
         response.raise_for_status()
 
-        logger.info("Response", response.json())
+        logger.info(response.json())
 
         data = response.json()
 
@@ -86,6 +92,6 @@ def handler(event, context):
         }
     }
 
-    logger.info("Result", result)
+    logger.info(result)
 
     return result

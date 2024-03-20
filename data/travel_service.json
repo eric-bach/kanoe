@@ -164,6 +164,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "bookingId": {
+                      "type": "int",
+                      "description": "Booking Confirmation Id"
+                    },
                     "memberId": {
                       "type": "int",
                       "description": "Member Id"
