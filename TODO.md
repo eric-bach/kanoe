@@ -1,20 +1,5 @@
 #### TODOs
 
-- Figure out how to create second Agent Group with IaC
-  https://github.com/awslabs/generative-ai-cdk-constructs
-  https://github.com/aws-samples/agentsforbedrock-retailagent/tree/main
-  https://github.com/PieterjanCriel/bedrock-agents-cdk/blob/main/lib/agentStack.ts
-- Create mock APIs to get fixed member info based on any member number
-  - Member Action Group
-    - GET /member/{memberNumber}
-    - GET /rewards/balance/{memberId}
-  - Travel Action Group
-    - GET /trips/{locationName}
-    - GET /bookings/{memberId}
-    - POST /bookings
-- Integrate mock API in chat
-- Add mock APIs to get reward dollar balances/transactions
-
 #### Reference
 
 - [Bedrock Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)

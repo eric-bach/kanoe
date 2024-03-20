@@ -3,19 +3,19 @@
   "info": {
     "title": "Travel Services Bot API",
     "version": "1.0.0",
-    "description": "Travel service APIs for a retail store selling and booking trips"
+    "description": "Travel service APIs for a retail store to book flights"
   },
   "paths": {
-    "/trips/{locationName}": {
+    "/airport/{city}": {
       "get": {
-        "summary": "Get available trips",
-        "description": "Based on the provided location name, return trips available for that location",
-        "operationId": "getAvailableTrips",
+        "summary": "Get airport code",
+        "description": "Based on the provided city name, returns the airport code closest to the city",
+        "operationId": "getAirportCode",
         "parameters": [
           {
-            "name": "LocationName",
+            "name": "City",
             "in": "path",
-            "description": "Location Name",
+            "description": "Name of the city",
             "required": true,
             "schema": {
               "type": "string"
@@ -24,7 +24,61 @@
         ],
         "responses": {
           "200": {
-            "description": "Get available trips",
+            "description": "Get airport code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "int",
+                      "description": "This is the airport code for the city"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flights/{departureId}/{arrivalId}/{date}": {
+      "get": {
+        "summary": "Get available flights",
+        "description": "Based on the provided departure and arrival airport codes and the date, return available flights for the departure, arrival and date provided",
+        "operationId": "getAvailableFlights",
+        "parameters": [
+          {
+            "name": "DepartureId",
+            "in": "path",
+            "description": "Departure Airport Code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ArrivalId",
+            "in": "path",
+            "description": "Arrival Airport Code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Date",
+            "in": "path",
+            "description": "Date",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get available flights",
             "content": {
               "application/json": {
                 "schema": {
@@ -34,11 +88,35 @@
                     "properties": {
                       "id": {
                         "type": "int",
-                        "description": "This is the Trip ID used to book the trip"
+                        "description": "This is the flight Id used to book the flight"
                       },
-                      "location": {
+                      "airline": {
                         "type": "string",
-                        "description": "The location of the trip"
+                        "description": "The name of the airline"
+                      },
+                      "departureId": {
+                        "type": "string",
+                        "description": "The departure airport code"
+                      },
+                      "departureName": {
+                        "type": "string",
+                        "description": "The departure city name"
+                      },
+                      "arrivalId": {
+                        "type": "string",
+                        "description": "The arrival airport code"
+                      },
+                      "arrivalName": {
+                        "type": "string",
+                        "description": "The arrival city name"
+                      },
+                      "departureDateTime": {
+                        "type": "string",
+                        "description": "The departure date and time"
+                      },
+                      "arrivalDateTime": {
+                        "type": "string",
+                        "description": "The arrival date and time"
                       },
                       "price": {
                         "type": "decimal",
@@ -53,57 +131,10 @@
         }
       }
     },
-    "/bookings/{memberId}": {
-      "get": {
-        "summary": "Get existing bookings for a member",
-        "description": "Based on the member Id, return the existing bookings for that member",
-        "operationId": "getBookings",
-        "parameters": [
-          {
-            "name": "MemberId",
-            "in": "query",
-            "description": "Member Id",
-            "required": true,
-            "schema": {
-              "type": "int"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Get existing bookings for a member",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "memberId": {
-                        "type": "int",
-                        "description": "Member Id"
-                      },
-                      "tripId": {
-                        "type": "int",
-                        "description": "Trip Id"
-                      },
-                      "location": {
-                        "type": "string",
-                        "description": "The trip location"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/bookings": {
+    "/flights/bookings/{id}": {
       "post": {
-        "summary": "Create booking for a member",
-        "description": "Create a booking for a member using the member Id and trip Id",
+        "summary": "Create a flight booking for a member",
+        "description": "Create a booking for a member using the flight id and member Id",
         "operationId": "createBooking",
         "parameters": [
           {
@@ -116,9 +147,9 @@
             }
           },
           {
-            "name": "TripId",
-            "in": "query",
-            "description": "Trip Id",
+            "name": "Id",
+            "in": "path",
+            "description": "Flight Id",
             "required": true,
             "schema": {
               "type": "int"
@@ -127,26 +158,19 @@
         ],
         "responses": {
           "200": {
-            "description": "Create booking for a member",
+            "description": "Create flight booking for a member",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "memberId": {
-                        "type": "int",
-                        "description": "Member Id"
-                      },
-                      "tripId": {
-                        "type": "int",
-                        "description": "Trip Id"
-                      },
-                      "location": {
-                        "type": "string",
-                        "description": "The trip location"
-                      }
+                  "type": "object",
+                  "properties": {
+                    "memberId": {
+                      "type": "int",
+                      "description": "Member Id"
+                    },
+                    "flightId": {
+                      "type": "int",
+                      "description": "Flight Id"
                     }
                   }
                 }

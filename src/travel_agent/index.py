@@ -12,13 +12,13 @@ def handler(event, context):
 
     data = "Sorry, please try again later."
 
-    if (api_path == '/member/{memberNumber}'):
-        parameters = event['parameters']
+    parameters = event['parameters']
+    if (api_path == '/airports/{city}'):
         for parameter in parameters:
-            if parameter["name"] == "MemberNumber":
-                memberNumber = parameter["value"]
+            if parameter["name"] == "City":
+                city = parameter["value"]
         
-        url = f"{API_GATEWAY_URL}member/{memberNumber}"
+        url = f"{API_GATEWAY_URL}airport/{city}"
         headers = {
             "content-type": "application/json"
         }
@@ -29,14 +29,44 @@ def handler(event, context):
         logger.info("Response", response.json())
 
         data = response.json()
-    elif (api_path == '/rewards/balance/{memberId}'):
-        data = {}
-    elif (api_path == '/trips/{locationName}'):
-        data = {}
-    elif (api_path == '/bookings/{memberId}'):
-        data = {}
-    elif (api_path == '/bookings'):
-        data = {}
+    elif (api_path == '/flights/{departureId}/{arrivalId}/{date}'):
+        for parameter in parameters:
+            if parameter["name"] == "DepartureId":
+                departureId = parameter["value"]
+            if parameter["name"] == "ArrivalId":
+                arrivalId = parameter["value"]
+            if parameter["name"] == "Date":
+                date = parameter["value"]
+
+        url = f"{API_GATEWAY_URL}flights/{departureId}/{arrivalId}/{date}"
+        headers = {
+            "content-type": "application/json"
+        }
+
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+
+        logger.info("Response", response.json())
+
+        data = response.json()
+    elif (api_path == '/flights/bookings/{id}'):
+        for parameter in parameters:
+            if parameter["name"] == "MemberId":
+                memberId = parameter["value"]
+            if parameter["name"] == "Id":
+                flightId = parameter["value"]
+            
+        url = f"{API_GATEWAY_URL}bookings/{flightId}"
+        headers = {
+            "content-type": "application/json"
+        }
+
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+
+        logger.info("Response", response.json())
+
+        data = response.json()
 
     # https://docs.aws.amazon.com/bedrock/latest/userguide/agents-lambda.html
     result = {

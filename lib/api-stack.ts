@@ -78,6 +78,95 @@ export class AxelaApiStack extends Stack {
       ],
     });
 
+    // GET /airports/{city}
+
+    const getAirportCodeMockIntegration = new MockIntegration({
+      requestTemplates: {
+        'application/json': '{"statusCode": 200}',
+      },
+      integrationResponses: [
+        {
+          statusCode: '200',
+          responseTemplates: {
+            'application/json': '{"id": "CDG"}',
+          },
+        },
+      ],
+    });
+
+    const getAirportCode = restapi.root.addResource('airport').addResource('{city}');
+
+    getAirportCode.addMethod('GET', getAirportCodeMockIntegration, {
+      methodResponses: [
+        {
+          statusCode: '200',
+          responseModels: {
+            'application/json': Model.EMPTY_MODEL,
+          },
+        },
+      ],
+    });
+
+    // GET /flights/{departureId}/{arrivalId}/{date}
+
+    const getAvailableFlightsMockIntegration = new MockIntegration({
+      requestTemplates: {
+        'application/json': '{"statusCode": 200}',
+      },
+      integrationResponses: [
+        {
+          statusCode: '200',
+          responseTemplates: {
+            'application/json':
+              '[{"id": "WS123", "airline": "WestJet", "departureid": "YYC", "departureTime": "2024-04-01T03:19:25:00Z", "arrivalId": "CDG", "arrivalTime": "2024-04-01T11:12:00Z", "price": 123.45}]',
+          },
+        },
+      ],
+    });
+
+    const flightsResource = restapi.root.addResource('flights');
+    const getAvailableFlights = flightsResource.addResource('{departureId}').addResource('{arrivalId}').addResource('{date}');
+
+    getAvailableFlights.addMethod('GET', getAvailableFlightsMockIntegration, {
+      methodResponses: [
+        {
+          statusCode: '200',
+          responseModels: {
+            'application/json': Model.EMPTY_MODEL,
+          },
+        },
+      ],
+    });
+
+    // POST /flights/bookings/{id}
+
+    const bookFlightMockIntegration = new MockIntegration({
+      requestTemplates: {
+        'application/json': '{"statusCode": 200}',
+      },
+      integrationResponses: [
+        {
+          statusCode: '200',
+          responseTemplates: {
+            'application/json': '{"memberId": "123456", "flightId": "WS10"}',
+          },
+        },
+      ],
+    });
+
+    const bookFlight = flightsResource.addResource('bookings').addResource('{id}');
+
+    bookFlight.addMethod('POST', bookFlightMockIntegration, {
+      methodResponses: [
+        {
+          statusCode: '200',
+          responseModels: {
+            'application/json': Model.EMPTY_MODEL,
+          },
+        },
+      ],
+    });
+
     /**********
      Outputs
      **********/

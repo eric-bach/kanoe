@@ -3,7 +3,7 @@
   "info": {
     "title": "Member Services Bot API",
     "version": "1.0.0",
-    "description": "Member service APIs for getting member information and reward dollar balance"
+    "description": "Member service APIs for getting member information and AMA reward dollar balance"
   },
   "paths": {
     "/member/{memberNumber}": {
