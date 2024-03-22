@@ -17,7 +17,7 @@ def handler(event, context):
         logger.info('Get airport code by city')
         
         for parameter in parameters:
-            if parameter["name"] == "City":
+            if parameter["name"] == "city":
                 city = parameter["value"]
         
         url = f"{API_GATEWAY_URL}airport/{city}"
@@ -35,11 +35,11 @@ def handler(event, context):
         logger.info('Get available flights')
         
         for parameter in parameters:
-            if parameter["name"] == "DepartureId":
+            if parameter["name"] == "departureId":
                 departureId = parameter["value"]
-            if parameter["name"] == "ArrivalId":
+            if parameter["name"] == "arrivalId":
                 arrivalId = parameter["value"]
-            if parameter["name"] == "Date":
+            if parameter["name"] == "date":
                 date = parameter["value"]
 
         url = f"{API_GATEWAY_URL}flights/{departureId}/{arrivalId}/{date}"
@@ -57,9 +57,9 @@ def handler(event, context):
         logger.info('Booking flight')
         
         for parameter in parameters:
-            if parameter["name"] == "MemberId":
+            if parameter["name"] == "memberId":
                 memberId = parameter["value"]
-            if parameter["name"] == "Id":
+            if parameter["name"] == "id":
                 flightId = parameter["value"]
             
         url = f"{API_GATEWAY_URL}flights/bookings/{flightId}"

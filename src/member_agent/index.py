@@ -15,7 +15,7 @@ def handler(event, context):
     parameters = event['parameters']
     if (api_path == '/member/{memberNumber}'):
         for parameter in parameters:
-            if parameter["name"] == "MemberNumber":
+            if parameter["name"] == "memberNumber":
                 memberNumber = parameter["value"]
         
         url = f"{API_GATEWAY_URL}member/{memberNumber}"
@@ -31,7 +31,7 @@ def handler(event, context):
         data = response.json()
     elif (api_path == '/rewards/balance/{memberId}'):
         for parameter in parameters:
-            if parameter["name"] == "MemberId":
+            if parameter["name"] == "memberId":
                 memberId = parameter["value"]
         
         url = f"{API_GATEWAY_URL}rewards/balance/{memberId}"

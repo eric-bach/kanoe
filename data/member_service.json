@@ -13,7 +13,7 @@
         "operationId": "getMemberInfo",
         "parameters": [
           {
-            "name": "MemberNumber",
+            "name": "memberNumber",
             "in": "path",
             "description": "Member Number",
             "required": true,
@@ -80,7 +80,7 @@
         "operationId": "getRewardBalance",
         "parameters": [
           {
-            "name": "MemberId",
+            "name": "memberId",
             "in": "query",
             "description": "Member Id",
             "required": true,
