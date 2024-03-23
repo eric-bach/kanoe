@@ -29,7 +29,23 @@ def handler(event, context):
         logger.info(response.json())
 
         data = response.json()
+    elif (api_path == '/rewards/transaction/{memberId}'):
+        for parameter in parameters:
+            if parameter["name"] == "memberId":
+                memberId = parameter["value"]
+        
+        url = f"{API_GATEWAY_URL}rewards/transaction/{memberId}"
+        headers = {
+            "content-type": "application/json"
+        }
 
+        response = requests.post(url, headers=headers)
+        response.raise_for_status()
+
+        logger.info(response.json())
+
+        data = response.json()
+        
     # https://docs.aws.amazon.com/bedrock/latest/userguide/agents-lambda.html
     result = {
         'messageVersion': '1.0',

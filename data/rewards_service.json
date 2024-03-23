@@ -45,6 +45,54 @@
           }
         }
       }
+    },
+    "/rewards/transaction/{memberId}": {
+      "post": {
+        "summary": "Redeems a member's reward dollars",
+        "description": "Reward Dollars service APIs for transacting with a member's AMA reward dollars",
+        "operationId": "redeemRewardDollars",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "int",
+                    "description": "Reward Dollars to redeem in cents"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "transactionid": {
+                      "type": "int",
+                      "description": "Transaction Id"
+                    },
+                    "balance": {
+                      "type": "int",
+                      "description": "Amount of reward dollars remaining in cents"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. One or more required fields are missing or invalid."
+          }
+        }
+      }
     }
   }
 }

@@ -65,9 +65,39 @@ export class AxelaApiStack extends Stack {
       ],
     });
 
-    const getRewardDollarBalance = restapi.root.addResource('rewards').addResource('balance').addResource('{memberId}');
+    const rewardsResource = restapi.root.addResource('rewards');
+    const getRewardDollarBalance = rewardsResource.addResource('balance').addResource('{memberId}');
 
     getRewardDollarBalance.addMethod('GET', getRewardDollarBalanceMockIntegration, {
+      methodResponses: [
+        {
+          statusCode: '200',
+          responseModels: {
+            'application/json': Model.EMPTY_MODEL,
+          },
+        },
+      ],
+    });
+
+    // POST /rewards/transaction/{memberId}
+
+    const redeemRewardDollarsMockIntegration = new MockIntegration({
+      requestTemplates: {
+        'application/json': '{"statusCode": 200}',
+      },
+      integrationResponses: [
+        {
+          statusCode: '200',
+          responseTemplates: {
+            'application/json': '{"transactionId": 123456789, "balance": 30.22}',
+          },
+        },
+      ],
+    });
+
+    const redeemRewardDollars = rewardsResource.addResource('transaction').addResource('{memberId}');
+
+    redeemRewardDollars.addMethod('GET', redeemRewardDollarsMockIntegration, {
       methodResponses: [
         {
           statusCode: '200',
