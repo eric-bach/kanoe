@@ -1,7 +1,5 @@
 #### TODOs
 
-- Add POST to rewards service
-
 #### Reference
 
 - [Bedrock Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)
