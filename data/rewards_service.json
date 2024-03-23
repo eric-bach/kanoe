@@ -1,0 +1,50 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Reward Dollars Services Bot API",
+    "version": "1.0.0",
+    "description": "Reward Dollars service APIs for transacting with a member's AMA reward dollars"
+  },
+  "paths": {
+    "/rewards/balance/{memberId}": {
+      "get": {
+        "summary": "Sub task to get member's reward dollar balance",
+        "description": "Once we have the member Id, we can get the reward dollar balance for the member",
+        "operationId": "getRewardBalance",
+        "parameters": [
+          {
+            "name": "memberId",
+            "in": "query",
+            "description": "Member Id",
+            "required": true,
+            "schema": {
+              "type": "int"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get member reward dollar balance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "memberId": {
+                      "type": "int",
+                      "description": "Member Id"
+                    },
+                    "balance": {
+                      "type": "decimal",
+                      "description": "Member reward dollar balance"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

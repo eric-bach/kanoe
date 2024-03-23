@@ -3,7 +3,7 @@
   "info": {
     "title": "Member Services Bot API",
     "version": "1.0.0",
-    "description": "Member service APIs for getting member information and AMA reward dollar balance"
+    "description": "Member service APIs for getting member information"
   },
   "paths": {
     "/member/{memberNumber}": {
@@ -36,26 +36,6 @@
                         "type": "int",
                         "description": "This is the Member ID used to place the order"
                       },
-                      "addressLine1": {
-                        "type": "string",
-                        "description": "Member billing address line 1"
-                      },
-                      "addressLine2": {
-                        "type": "string",
-                        "description": "Member billing address line 2"
-                      },
-                      "city": {
-                        "type": "string",
-                        "description": "Member billing city"
-                      },
-                      "province": {
-                        "type": "string",
-                        "description": "Member billing state"
-                      },
-                      "postalCode": {
-                        "type": "string",
-                        "description": "Member billing postal code"
-                      },
                       "firstName": {
                         "type": "string",
                         "description": "Member first name"
@@ -63,47 +43,27 @@
                       "lastName": {
                         "type": "string",
                         "description": "Member last name"
+                      },
+                      "addressLine1": {
+                        "type": "string",
+                        "description": "Member address line 1"
+                      },
+                      "addressLine2": {
+                        "type": "string",
+                        "description": "Member address line 2"
+                      },
+                      "city": {
+                        "type": "string",
+                        "description": "Member city"
+                      },
+                      "province": {
+                        "type": "string",
+                        "description": "Member province"
+                      },
+                      "postalCode": {
+                        "type": "string",
+                        "description": "Member postal code"
                       }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/rewards/balance/{memberId}": {
-      "get": {
-        "summary": "Sub task to get member's reward dollar balance",
-        "description": "Once we have the member Id, we can get the reward dollar balance for the member",
-        "operationId": "getRewardBalance",
-        "parameters": [
-          {
-            "name": "memberId",
-            "in": "query",
-            "description": "Member Id",
-            "required": true,
-            "schema": {
-              "type": "int"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Get member reward dollar balance",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "memberId": {
-                      "type": "int",
-                      "description": "Member Id"
-                    },
-                    "balance": {
-                      "type": "decimal",
-                      "description": "Member reward dollar balance"
                     }
                   }
                 }

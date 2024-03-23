@@ -13,12 +13,12 @@ def handler(event, context):
     data = "Sorry, please try again later."
 
     parameters = event['parameters']
-    if (api_path == '/member/{memberNumber}'):
+    if (api_path == '/rewards/balance/{memberId}'):
         for parameter in parameters:
-            if parameter["name"] == "memberNumber":
-                memberNumber = parameter["value"]
+            if parameter["name"] == "memberId":
+                memberId = parameter["value"]
         
-        url = f"{API_GATEWAY_URL}member/{memberNumber}"
+        url = f"{API_GATEWAY_URL}rewards/balance/{memberId}"
         headers = {
             "content-type": "application/json"
         }
@@ -29,7 +29,7 @@ def handler(event, context):
         logger.info(response.json())
 
         data = response.json()
-    
+
     # https://docs.aws.amazon.com/bedrock/latest/userguide/agents-lambda.html
     result = {
         'messageVersion': '1.0',
