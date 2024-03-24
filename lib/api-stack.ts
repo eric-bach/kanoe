@@ -30,7 +30,7 @@ export class AxelaApiStack extends Stack {
           statusCode: '200',
           responseTemplates: {
             'application/json':
-              '{"id": 2175107, "firstName": "Eric", "lastName": "Bach", "addressLine1": "123 Main St", "addressLine2": "Apt 101", "city": "Anytown", "province": "AB", "postalCode": "T5T5T5"}',
+              '{"id": 2175107, "firstName": "Eric", "lastName": "Bach", "addressLine1": "123 Main St", "addressLine2": "Apt 101", "city": "Edmonton", "province": "AB", "postalCode": "T5T5T5"}',
           },
         },
       ],
@@ -148,7 +148,7 @@ export class AxelaApiStack extends Stack {
           statusCode: '200',
           responseTemplates: {
             'application/json':
-              '[{"id": "WS123", "airline": "WestJet", "departureid": "YYC", "departureTime": "2024-04-01T03:19:25:00Z", "arrivalId": "CDG", "arrivalTime": "2024-04-01T11:12:00Z", "price": 123.45}]',
+              '[{"id":123,"flights":[{"id":"WS258","airline":"WestJet","departureid":"YEG","departureTime":"2024-03-31T23:00:00:00Z","arrivalId":"YYC","arrivalTime":"2024-03-31T23:45:00Z","price":234.24},{"id":"WS19","airline":"WestJet","departureid":"YYC","departureTime":"2024-04-01T03:19:00:00Z","arrivalId":"CDG","arrivalTime":"2024-04-01T11:12:00Z","price":383.19}]},{"id":346,"flights":[{"id":"WS239","airline":"WestJet","departureid":"YEG","departureTime":"2024-03-31T12:15:00:00Z","arrivalId":"YYC","arrivalTime":"2024-03-31T13:00:00Z","price":184.24},{"id":"WS19","airline":"WestJet","departureid":"YYC","departureTime":"2024-04-01T03:19:00:00Z","arrivalId":"CDG","arrivalTime":"2024-04-01T11:12:00Z","price":383.19}]}]',
           },
         },
       ],
@@ -168,7 +168,7 @@ export class AxelaApiStack extends Stack {
       ],
     });
 
-    // POST /flights/bookings/{id}
+    // POST /flights/bookings/{id}/{memberId}
 
     const bookFlightMockIntegration = new MockIntegration({
       requestTemplates: {
@@ -178,13 +178,13 @@ export class AxelaApiStack extends Stack {
         {
           statusCode: '200',
           responseTemplates: {
-            'application/json': '{"memberId": "123456", "flightId": "WS10", "bookingId": "ABC123"}',
+            'application/json': '{"url": "https://ama.ab.ca/book/123"}',
           },
         },
       ],
     });
 
-    const bookFlight = flightsResource.addResource('bookings').addResource('{id}');
+    const bookFlight = flightsResource.addResource('bookings').addResource('{id}').addResource('{memberId}');
 
     bookFlight.addMethod('POST', bookFlightMockIntegration, {
       methodResponses: [

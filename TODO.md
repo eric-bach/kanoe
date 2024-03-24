@@ -1,5 +1,11 @@
 #### TODOs
 
+- Book flight with a saved CC
+- Generate booking url
+
+- Investigate how to hook up API
+- Build streamlit frontend
+
 #### Reference
 
 - [Bedrock Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)
@@ -7,9 +13,9 @@
 
 ### IaC for Bedrock
 
-https://github.com/PieterjanCriel/bedrock-agents-cdk/blob/main/lib/agentStack.ts
-https://github.com/aws-samples/agentsforbedrock-retailagent/tree/main
-https://github.com/awslabs/generative-ai-cdk-constructs
+- https://github.com/awslabs/generative-ai-cdk-constructs
+- https://github.com/aws-samples/agentsforbedrock-retailagent/tree/main
+- https://github.com/PieterjanCriel/bedrock-agents-cdk/blob/main/lib/agentStack.ts
 
 #### Other References
 

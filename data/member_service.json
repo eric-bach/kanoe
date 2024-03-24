@@ -9,7 +9,7 @@
     "/member/{memberNumber}": {
       "get": {
         "summary": "Get member information",
-        "description": "Based on provided member number, return member information like member ID, first name, and last name",
+        "description": "Based on provided membership number, returns member information like member ID, first name, last name, and address",
         "operationId": "getMemberInfo",
         "parameters": [
           {
@@ -34,7 +34,7 @@
                     "properties": {
                       "id": {
                         "type": "int",
-                        "description": "This is the Member ID used to place the order"
+                        "description": "This is the member ID"
                       },
                       "firstName": {
                         "type": "string",

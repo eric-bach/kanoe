@@ -131,10 +131,10 @@
         }
       }
     },
-    "/flights/bookings/{id}": {
+    "/flights/bookings/{id}/{memberId}": {
       "post": {
-        "summary": "Create a flight booking for a member",
-        "description": "Create a booking for a member using the flight id and member Id",
+        "summary": "Generate a booking URL to book a flight",
+        "description": "Generat a booking URL for a member using the flight id and member Id",
         "operationId": "createBooking",
         "parameters": [
           {
@@ -158,23 +158,15 @@
         ],
         "responses": {
           "200": {
-            "description": "Create flight booking for a member",
+            "description": "Generate booking URL for a member",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "bookingId": {
-                      "type": "int",
-                      "description": "Booking Confirmation Id"
-                    },
-                    "memberId": {
-                      "type": "int",
-                      "description": "Member Id"
-                    },
-                    "flightId": {
-                      "type": "int",
-                      "description": "Flight Id"
+                    "url": {
+                      "type": "string",
+                      "description": "Booking URL"
                     }
                   }
                 }
