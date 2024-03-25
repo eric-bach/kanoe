@@ -9,7 +9,7 @@
     "/member/{memberNumber}": {
       "get": {
         "summary": "Get member information",
-        "description": "Based on provided membership number, returns member information like member ID, first name, last name, and address",
+        "description": "Based on provided membership number, returns member information like member ID, first name, last name, address, and a credit card if available",
         "operationId": "getMemberInfo",
         "parameters": [
           {
@@ -63,6 +63,27 @@
                       "postalCode": {
                         "type": "string",
                         "description": "Member postal code"
+                      },
+                      "creditCard": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Credit card name"
+                          },
+                          "number": {
+                            "type": "string",
+                            "description": "Credit card number"
+                          },
+                          "expiryDate": {
+                            "type": "string",
+                            "description": "Credit card expiry date"
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "Credit card type"
+                          }
+                        }
                       }
                     }
                   }

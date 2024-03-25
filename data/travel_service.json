@@ -131,42 +131,42 @@
         }
       }
     },
-    "/flights/bookings/{id}/{memberId}": {
+    "/flights/bookings": {
       "post": {
-        "summary": "Generate a booking URL to book a flight",
-        "description": "Generat a booking URL for a member using the flight id and member Id",
-        "operationId": "createBooking",
-        "parameters": [
-          {
-            "name": "memberId",
-            "in": "query",
-            "description": "Member Id",
-            "required": true,
-            "schema": {
-              "type": "int"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Flight Id",
-            "required": true,
-            "schema": {
-              "type": "int"
+        "summary": "Use a members saved credit card to book a flight",
+        "description": "Book a flight for a member if they have a saved credit card",
+        "operationId": "bookFlight",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "memberId": {
+                    "type": "int",
+                    "description": "Member Id"
+                  },
+                  "flightId": {
+                    "type": "int",
+                    "description": "Flight Id"
+                  }
+                }
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
-            "description": "Generate booking URL for a member",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "url": {
+                    "referenceNumber": {
                       "type": "string",
-                      "description": "Booking URL"
+                      "description": "Booking Reference Number"
                     }
                   }
                 }

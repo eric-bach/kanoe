@@ -30,7 +30,7 @@ export class AxelaApiStack extends Stack {
           statusCode: '200',
           responseTemplates: {
             'application/json':
-              '{"id": 2175107, "firstName": "Eric", "lastName": "Bach", "addressLine1": "123 Main St", "addressLine2": "Apt 101", "city": "Edmonton", "province": "AB", "postalCode": "T5T5T5"}',
+              '{"id": 2175107, "firstName": "Eric", "lastName": "Bach", "addressLine1": "123 Main St", "addressLine2": "Apt 101", "city": "Edmonton", "province": "AB", "postalCode": "T5T5T5", "creditCard":{"name":"Eric Bach","number":"4216*******0823","exiryDate":"06/28","type":"VISA"}}',
           },
         },
       ],
@@ -65,39 +65,9 @@ export class AxelaApiStack extends Stack {
       ],
     });
 
-    const rewardsResource = restapi.root.addResource('rewards');
-    const getRewardDollarBalance = rewardsResource.addResource('balance').addResource('{memberId}');
+    const getRewardDollarBalance = restapi.root.addResource('rewards').addResource('balance').addResource('{memberId}');
 
     getRewardDollarBalance.addMethod('GET', getRewardDollarBalanceMockIntegration, {
-      methodResponses: [
-        {
-          statusCode: '200',
-          responseModels: {
-            'application/json': Model.EMPTY_MODEL,
-          },
-        },
-      ],
-    });
-
-    // POST /rewards/transaction/{memberId}
-
-    const redeemRewardDollarsMockIntegration = new MockIntegration({
-      requestTemplates: {
-        'application/json': '{"statusCode": 200}',
-      },
-      integrationResponses: [
-        {
-          statusCode: '200',
-          responseTemplates: {
-            'application/json': '{"transactionId": 123456789, "balance": 30.22}',
-          },
-        },
-      ],
-    });
-
-    const redeemRewardDollars = rewardsResource.addResource('transaction').addResource('{memberId}');
-
-    redeemRewardDollars.addMethod('GET', redeemRewardDollarsMockIntegration, {
       methodResponses: [
         {
           statusCode: '200',
@@ -168,7 +138,7 @@ export class AxelaApiStack extends Stack {
       ],
     });
 
-    // POST /flights/bookings/{id}/{memberId}
+    // POST /flights/bookings
 
     const bookFlightMockIntegration = new MockIntegration({
       requestTemplates: {
@@ -178,13 +148,13 @@ export class AxelaApiStack extends Stack {
         {
           statusCode: '200',
           responseTemplates: {
-            'application/json': '{"url": "https://ama.ab.ca/book/123"}',
+            'application/json': '{"referenceNumber": "UJH35S"}',
           },
         },
       ],
     });
 
-    const bookFlight = flightsResource.addResource('bookings').addResource('{id}').addResource('{memberId}');
+    const bookFlight = flightsResource.addResource('bookings');
 
     bookFlight.addMethod('POST', bookFlightMockIntegration, {
       methodResponses: [

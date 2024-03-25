@@ -53,16 +53,12 @@ def handler(event, context):
         logger.info(response.json())
 
         data = response.json()
-    elif (api_path == '/flights/bookings/{id}/{memberId}'):
+    elif (api_path == '/flights/bookings'):
         logger.info('Booking flight')
         
-        for parameter in parameters:
-            if parameter["name"] == "memberId":
-                memberId = parameter["value"]
-            if parameter["name"] == "id":
-                flightId = parameter["value"]
+        print("event", event)
             
-        url = f"{API_GATEWAY_URL}flights/bookings/{flightId}/{memberId}"
+        url = f"{API_GATEWAY_URL}flights/bookings"
         headers = {
             "content-type": "application/json"
         }

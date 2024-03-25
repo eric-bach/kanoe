@@ -108,7 +108,7 @@ export class AxelaStack extends Stack {
 
     const bedrockAgentProps: BedrockAgentProps = {
       bedrockRegion: 'us-east-1',
-      agentName: 'RetailAgent',
+      agentName: 'RetailAgentCDK',
       instruction:
         'You are an agent that helps members search for a flight. Members with available reward dollars can use them to pay \
           for part or all of the flight so ensure you retrieve member and reward dollar balances with their membership number or member ID. \
