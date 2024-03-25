@@ -137,7 +137,14 @@ export class AxelaStack extends Stack {
           actionGroupExecutor: rewardsAgentFunction.functionArn,
           s3BucketName: bucket.bucketName,
           s3ObjectKey: 'rewards_service.json',
-          description: 'Reards Service Action Group',
+          description: 'Rewards Service Action Group',
+        },
+        {
+          actionGroupName: 'TravelActionGroup',
+          actionGroupExecutor: travelAgentFunction.functionArn,
+          s3BucketName: bucket.bucketName,
+          s3ObjectKey: 'travel_service.json',
+          description: 'Travel Service Action Group',
         },
       ],
     };
