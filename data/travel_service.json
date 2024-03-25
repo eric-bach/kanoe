@@ -3,7 +3,7 @@
   "info": {
     "title": "Travel Services Bot API",
     "version": "1.0.0",
-    "description": "Travel service APIs for a retail store to book flights"
+    "description": "Travel service APIs to search and book flights"
   },
   "paths": {
     "/airport/{city}": {
