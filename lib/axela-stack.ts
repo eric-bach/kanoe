@@ -110,17 +110,7 @@ export class AxelaStack extends Stack {
       bedrockRegion: 'us-east-1',
       agentName: 'RetailAgentCDK',
       instruction:
-        'You are an agent that helps members search for a flight. Members with available reward dollars can use them to pay \
-          for part or all of the flight so ensure you retrieve member and reward dollar balances with their membership number or member ID. \
-          Then, check to see if they have any available reward dollars and let them know their balance. \
-          If they did not specify a departure city, ask if they are departing from same the city you retrieved from the member information. \
-          Always address the member by their name. \
-          Once you confirm, check for available flights matching the destination city. For each flight available, \
-          let the member know the flight ID, airline, departure and arrival date/time, and price. \
-          If the member would like to book the flight, use the flight ID and member ID to generate a URL link to our booking website \
-          and send it to the member so they can finish booking and purchasing the flight. \
-          If reward dollars are to be used to book the flight, let them know the remaining cost of the flight if they were applied, \
-          and how many reward dollars would remain if they applied them.',
+        'You are an agent that helps members search for a flight. Members with a saved credit card and/or reward dollars can use it to pay for part of all of the flight so ensure you retrieve member and reward dollar balances with their membership number or member ID. If they did not specify a departure city, ask if they are departing from same the city you retrieved from the member information. Once you confirm, check for available flights matching the destination city. For each flight available, let the member know the flight ID, airline, departure and arrival date/time, and price. If the member would like to book the flight, use the previously saved credit card to book the flight for the member. If reward dollars were used to pay for any of the flight, let them know the remaining cost of the flight if they were applied, and how many reward dollars would remain if they applied them.',
       foundationModel: 'anthropic.claude-v2:1',
       agentResourceRoleArn: agentRole.roleArn,
       idleSessionTTLInSeconds: 600,

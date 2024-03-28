@@ -17,7 +17,7 @@ export class AxelaApiStack extends Stack {
       Mock APIs
      **********/
 
-    const restapi = new RestApi(this, 'RestApi');
+    const restapi = new RestApi(this, 'RestApi', { restApiName: `${props.appName}-api-${props.envName}` });
 
     // GET /member/{memberNumber}
 

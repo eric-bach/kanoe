@@ -12,10 +12,10 @@ def handler(event, context):
 
     data = "Sorry, please try again later."
 
-    parameters = event['parameters']
     if (api_path == '/airport/{city}'):
         logger.info('Get airport code by city')
         
+        parameters = event['parameters']
         for parameter in parameters:
             if parameter["name"] == "city":
                 city = parameter["value"]
@@ -34,6 +34,7 @@ def handler(event, context):
     elif (api_path == '/flights/{departureId}/{arrivalId}/{date}'):
         logger.info('Get available flights')
         
+        parameters = event['parameters']
         for parameter in parameters:
             if parameter["name"] == "departureId":
                 departureId = parameter["value"]
