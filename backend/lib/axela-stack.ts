@@ -165,72 +165,6 @@ export class AxelaStack extends Stack {
       layers: [powertoolsLayer],
     });
 
-    const connectWebsocket = new PythonFunction(this, 'ConnectWebsocket', {
-      functionName: `${props.appName}-ConnectWebsocket-${props.envName}`,
-      entry: 'src/connect_websocket',
-      runtime: Runtime.PYTHON_3_10,
-      architecture: Architecture.ARM_64,
-      memorySize: 384,
-      timeout: Duration.seconds(30),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
-      retryAttempts: 0,
-      layers: [powertoolsLayer],
-    });
-    table.grantReadWriteData(connectWebsocket);
-
-    const disconnectWebsocket = new PythonFunction(this, 'DisconnectWebsocket', {
-      functionName: `${props.appName}-DisconnectWebsocket-${props.envName}`,
-      entry: 'src/disconnect_websocket',
-      runtime: Runtime.PYTHON_3_10,
-      architecture: Architecture.ARM_64,
-      memorySize: 384,
-      timeout: Duration.seconds(30),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
-      retryAttempts: 0,
-      layers: [powertoolsLayer],
-    });
-    table.grantReadWriteData(disconnectWebsocket);
-
-    const authWebsocket = new PythonFunction(this, 'AuthWebsocket', {
-      functionName: `${props.appName}-AuthWebsocket-${props.envName}`,
-      entry: 'src/auth_websocket',
-      runtime: Runtime.PYTHON_3_10,
-      architecture: Architecture.ARM_64,
-      memorySize: 384,
-      timeout: Duration.seconds(30),
-      environment: {
-        USER_POOL_ID: userPool.userPoolId,
-        APP_CLIENT_ID: userPoolClient.userPoolClientId,
-      },
-      retryAttempts: 0,
-      layers: [powertoolsLayer],
-    });
-
-    const sendMessage = new PythonFunction(this, 'SendMessage', {
-      functionName: `${props.appName}-SendMessage-${props.envName}`,
-      entry: 'src/send_message',
-      runtime: Runtime.PYTHON_3_10,
-      architecture: Architecture.ARM_64,
-      memorySize: 2048,
-      timeout: Duration.seconds(60),
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
-      retryAttempts: 0,
-      layers: [powertoolsLayer],
-    });
-    table.grantReadData(sendMessage);
-    sendMessage.addToRolePolicy(
-      new PolicyStatement({
-        actions: ['bedrock:InvokeModel'],
-        resources: ['arn:aws:bedrock:*::foundation-model/anthropic.claude-v2:1'],
-      })
-    );
-
     /**********
       Bedrock 
      **********/
@@ -289,7 +223,81 @@ export class AxelaStack extends Stack {
       ],
     };
 
-    new BedrockAgent(this, 'BedrockAgent', bedrockAgentProps);
+    const agent = new BedrockAgent(this, 'BedrockAgent', bedrockAgentProps);
+
+    /**********
+      Websocket Functions
+     **********/
+
+    const connectWebsocket = new PythonFunction(this, 'ConnectWebsocket', {
+      functionName: `${props.appName}-ConnectWebsocket-${props.envName}`,
+      entry: 'src/connect_websocket',
+      runtime: Runtime.PYTHON_3_10,
+      architecture: Architecture.ARM_64,
+      memorySize: 384,
+      timeout: Duration.seconds(30),
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
+      retryAttempts: 0,
+      layers: [powertoolsLayer],
+    });
+    table.grantReadWriteData(connectWebsocket);
+
+    const disconnectWebsocket = new PythonFunction(this, 'DisconnectWebsocket', {
+      functionName: `${props.appName}-DisconnectWebsocket-${props.envName}`,
+      entry: 'src/disconnect_websocket',
+      runtime: Runtime.PYTHON_3_10,
+      architecture: Architecture.ARM_64,
+      memorySize: 384,
+      timeout: Duration.seconds(30),
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
+      retryAttempts: 0,
+      layers: [powertoolsLayer],
+    });
+    table.grantReadWriteData(disconnectWebsocket);
+
+    const authWebsocket = new PythonFunction(this, 'AuthWebsocket', {
+      functionName: `${props.appName}-AuthWebsocket-${props.envName}`,
+      entry: 'src/auth_websocket',
+      runtime: Runtime.PYTHON_3_10,
+      architecture: Architecture.ARM_64,
+      memorySize: 384,
+      timeout: Duration.seconds(30),
+      environment: {
+        USER_POOL_ID: userPool.userPoolId,
+        APP_CLIENT_ID: userPoolClient.userPoolClientId,
+      },
+      retryAttempts: 0,
+      layers: [powertoolsLayer],
+    });
+
+    // TODO Change this each time agent is created
+    const AGENT_ID = 'ZXO44HCY0H';
+    const sendMessage = new PythonFunction(this, 'SendMessage', {
+      functionName: `${props.appName}-SendMessage-${props.envName}`,
+      entry: 'src/send_message',
+      runtime: Runtime.PYTHON_3_10,
+      architecture: Architecture.ARM_64,
+      memorySize: 2048,
+      timeout: Duration.seconds(60),
+      environment: {
+        TABLE_NAME: table.tableName,
+        AGENT_ID: AGENT_ID,
+        AGENT_ALIAS_ID: 'TSTALIASID',
+      },
+      retryAttempts: 0,
+      layers: [powertoolsLayer],
+    });
+    table.grantReadData(sendMessage);
+    sendMessage.addToRolePolicy(
+      new PolicyStatement({
+        actions: ['bedrock:InvokeAgent'],
+        resources: [`arn:aws:bedrock:*:*:agent-alias/${AGENT_ID}/TSTALIASID`],
+      })
+    );
 
     //**********
     // APIs
