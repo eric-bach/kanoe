@@ -32,7 +32,7 @@ def handler(event, context):
             logger.info("Sending message to connectionId: " + connectionId["connectionId"]["S"])
             api_gateway_management_api.post_to_connection(
                 ConnectionId=connectionId["connectionId"]["S"],
-                Data=json.dumps({"message": event_body["message"]})
+                Data=json.dumps({"message": event_body["prompt"]})
             )
         except Exception as e:
              logger.error(f"Error sending message to connectionId {connectionId}: {e}")
@@ -45,5 +45,5 @@ def handler(event, context):
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "*",
         },
-        "body": json.dumps({"message": event_body["message"]}),
+        "body": json.dumps({"message": event_body["prompt"]}),
     }

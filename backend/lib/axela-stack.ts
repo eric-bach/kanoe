@@ -295,7 +295,7 @@ export class AxelaStack extends Stack {
     // APIs
     //**********
 
-    // WSS /{documentId}/{conversationId}
+    // Websocket API
     const webSocketApi = new WebSocketApi(this, 'GenerateResponseWebsocket', {
       apiName: `${props.appName}-websocket-api-${props.envName}`,
       connectRouteOptions: {
@@ -314,8 +314,8 @@ export class AxelaStack extends Stack {
       stageName: 'prod',
       autoDeploy: true,
     });
-    webSocketApi.addRoute('GenerateResponse', {
-      integration: new WebSocketLambdaIntegration('GenerateResponseIntegration', sendMessage),
+    webSocketApi.addRoute('SendMessage', {
+      integration: new WebSocketLambdaIntegration('SendMessageIntegration', sendMessage),
     });
 
     // Add permissions to websocket function to manage websocket connections
