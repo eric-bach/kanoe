@@ -24,6 +24,10 @@ import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CacheControl } from 'aws-cdk-lib/aws-codepipeline-actions';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import * as path from 'path';
+import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
+import { WebSocketApi, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
+import { WebSocketLambdaAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
+import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -102,6 +106,13 @@ export class AxelaStack extends Stack {
       retainOnDelete: false,
     });
 
+    const table = new Table(this, 'WebsocketConnections', {
+      tableName: `${props.appName}-connections-${props.envName}`,
+      partitionKey: { name: 'connectionId', type: AttributeType.STRING },
+      removalPolicy: RemovalPolicy.DESTROY,
+      billingMode: BillingMode.PAY_PER_REQUEST,
+    });
+
     /**********
      Lambda Functions
      **********/
@@ -153,6 +164,72 @@ export class AxelaStack extends Stack {
       },
       layers: [powertoolsLayer],
     });
+
+    const connectWebsocket = new PythonFunction(this, 'ConnectWebsocket', {
+      functionName: `${props.appName}-ConnectWebsocket-${props.envName}`,
+      entry: 'src/connect_websocket',
+      runtime: Runtime.PYTHON_3_10,
+      architecture: Architecture.ARM_64,
+      memorySize: 384,
+      timeout: Duration.seconds(30),
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
+      retryAttempts: 0,
+      layers: [powertoolsLayer],
+    });
+    table.grantReadWriteData(connectWebsocket);
+
+    const disconnectWebsocket = new PythonFunction(this, 'DisconnectWebsocket', {
+      functionName: `${props.appName}-DisconnectWebsocket-${props.envName}`,
+      entry: 'src/disconnect_websocket',
+      runtime: Runtime.PYTHON_3_10,
+      architecture: Architecture.ARM_64,
+      memorySize: 384,
+      timeout: Duration.seconds(30),
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
+      retryAttempts: 0,
+      layers: [powertoolsLayer],
+    });
+    table.grantReadWriteData(disconnectWebsocket);
+
+    const authWebsocket = new PythonFunction(this, 'AuthWebsocket', {
+      functionName: `${props.appName}-AuthWebsocket-${props.envName}`,
+      entry: 'src/auth_websocket',
+      runtime: Runtime.PYTHON_3_10,
+      architecture: Architecture.ARM_64,
+      memorySize: 384,
+      timeout: Duration.seconds(30),
+      environment: {
+        USER_POOL_ID: userPool.userPoolId,
+        APP_CLIENT_ID: userPoolClient.userPoolClientId,
+      },
+      retryAttempts: 0,
+      layers: [powertoolsLayer],
+    });
+
+    const sendMessage = new PythonFunction(this, 'SendMessage', {
+      functionName: `${props.appName}-SendMessage-${props.envName}`,
+      entry: 'src/send_message',
+      runtime: Runtime.PYTHON_3_10,
+      architecture: Architecture.ARM_64,
+      memorySize: 2048,
+      timeout: Duration.seconds(60),
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
+      retryAttempts: 0,
+      layers: [powertoolsLayer],
+    });
+    table.grantReadData(sendMessage);
+    sendMessage.addToRolePolicy(
+      new PolicyStatement({
+        actions: ['bedrock:InvokeModel'],
+        resources: ['arn:aws:bedrock:*::foundation-model/anthropic.claude-v2:1'],
+      })
+    );
 
     /**********
       Bedrock 
@@ -213,6 +290,47 @@ export class AxelaStack extends Stack {
     };
 
     new BedrockAgent(this, 'BedrockAgent', bedrockAgentProps);
+
+    //**********
+    // APIs
+    //**********
+
+    // WSS /{documentId}/{conversationId}
+    const webSocketApi = new WebSocketApi(this, 'GenerateResponseWebsocket', {
+      apiName: `${props.appName}-websocket-api-${props.envName}`,
+      connectRouteOptions: {
+        authorizer: new WebSocketLambdaAuthorizer('Authorizer', authWebsocket, {
+          identitySource: ['route.request.querystring.idToken'],
+        }),
+        integration: new WebSocketLambdaIntegration('ConnectHandlerIntegration', connectWebsocket),
+      },
+      disconnectRouteOptions: {
+        integration: new WebSocketLambdaIntegration('DisconnectHandlerIntegration', disconnectWebsocket),
+      },
+      routeSelectionExpression: '$request.body.action',
+    });
+    const apiStage = new WebSocketStage(this, 'WebsocketStage', {
+      webSocketApi,
+      stageName: 'prod',
+      autoDeploy: true,
+    });
+    webSocketApi.addRoute('GenerateResponse', {
+      integration: new WebSocketLambdaIntegration('GenerateResponseIntegration', sendMessage),
+    });
+
+    // Add permissions to websocket function to manage websocket connections
+    sendMessage.addToRolePolicy(
+      new PolicyStatement({
+        actions: ['execute-api:ManageConnections'],
+        resources: [
+          this.formatArn({
+            service: 'execute-api',
+            resourceName: `${apiStage.stageName}/POST/*`,
+            resource: webSocketApi.apiId,
+          }),
+        ],
+      })
+    );
 
     //**********
     // Frontend

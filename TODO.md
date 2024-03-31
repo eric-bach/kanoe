@@ -3,9 +3,9 @@
 X UI: Investigate how to hook up API to frontend
 
 - UI: Build Vite/streamlit frontend
-  - Build Lambda function to call Bedrock
-  - Build API GW WebSocket
+  X Build API GW WebSocket
   - Hook up Frontend to WebSocket
+  - Build Lambda function to call Bedrock
 - Backend: Test Agent is able to book flight consistently
 - Backend: Advanced Prompt Templates to translate responses
 
