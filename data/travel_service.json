@@ -1,0 +1,180 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Travel Services Bot API",
+    "version": "1.0.0",
+    "description": "Travel service APIs to search and book flights"
+  },
+  "paths": {
+    "/airport/{city}": {
+      "get": {
+        "summary": "Get airport code",
+        "description": "Based on the provided city name, returns the airport code closest to the city",
+        "operationId": "getAirportCode",
+        "parameters": [
+          {
+            "name": "city",
+            "in": "path",
+            "description": "Name of the city",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get airport code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "int",
+                      "description": "This is the airport code for the city"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flights/{departureId}/{arrivalId}/{date}": {
+      "get": {
+        "summary": "Get available flights",
+        "description": "Based on the provided departure and arrival airport codes and the date, return available flights for the departure, arrival and date provided",
+        "operationId": "getAvailableFlights",
+        "parameters": [
+          {
+            "name": "departureId",
+            "in": "path",
+            "description": "Departure Airport Code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "arrivalId",
+            "in": "path",
+            "description": "Arrival Airport Code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "in": "path",
+            "description": "Date",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get available flights",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "int",
+                        "description": "This is the flight Id used to book the flight"
+                      },
+                      "airline": {
+                        "type": "string",
+                        "description": "The name of the airline"
+                      },
+                      "departureId": {
+                        "type": "string",
+                        "description": "The departure airport code"
+                      },
+                      "departureName": {
+                        "type": "string",
+                        "description": "The departure city name"
+                      },
+                      "arrivalId": {
+                        "type": "string",
+                        "description": "The arrival airport code"
+                      },
+                      "arrivalName": {
+                        "type": "string",
+                        "description": "The arrival city name"
+                      },
+                      "departureDateTime": {
+                        "type": "string",
+                        "description": "The departure date and time"
+                      },
+                      "arrivalDateTime": {
+                        "type": "string",
+                        "description": "The arrival date and time"
+                      },
+                      "price": {
+                        "type": "decimal",
+                        "description": "The price of the trip"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flights/bookings": {
+      "post": {
+        "summary": "Use a members saved credit card to book a flight",
+        "description": "Book a flight for a member if they have a saved credit card",
+        "operationId": "bookFlight",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "memberId": {
+                    "type": "int",
+                    "description": "Member Id"
+                  },
+                  "flightId": {
+                    "type": "int",
+                    "description": "Flight Id"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "referenceNumber": {
+                      "type": "string",
+                      "description": "Booking Reference Number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

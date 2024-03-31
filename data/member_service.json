@@ -1,0 +1,98 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Member Services Bot API",
+    "version": "1.0.0",
+    "description": "Member service APIs for getting member information"
+  },
+  "paths": {
+    "/member/{memberNumber}": {
+      "get": {
+        "summary": "Get member information",
+        "description": "Based on provided membership number, returns member information like member ID, first name, last name, address, and a credit card if available",
+        "operationId": "getMemberInfo",
+        "parameters": [
+          {
+            "name": "memberNumber",
+            "in": "path",
+            "description": "Member Number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get member information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "int",
+                        "description": "This is the member ID"
+                      },
+                      "firstName": {
+                        "type": "string",
+                        "description": "Member first name"
+                      },
+                      "lastName": {
+                        "type": "string",
+                        "description": "Member last name"
+                      },
+                      "addressLine1": {
+                        "type": "string",
+                        "description": "Member address line 1"
+                      },
+                      "addressLine2": {
+                        "type": "string",
+                        "description": "Member address line 2"
+                      },
+                      "city": {
+                        "type": "string",
+                        "description": "Member city"
+                      },
+                      "province": {
+                        "type": "string",
+                        "description": "Member province"
+                      },
+                      "postalCode": {
+                        "type": "string",
+                        "description": "Member postal code"
+                      },
+                      "creditCard": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Credit card name"
+                          },
+                          "number": {
+                            "type": "string",
+                            "description": "Credit card number"
+                          },
+                          "expiryDate": {
+                            "type": "string",
+                            "description": "Credit card expiry date"
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "Credit card type"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
