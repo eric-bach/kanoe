@@ -3,7 +3,6 @@ import { Authenticator, Theme, ThemeProvider, View } from '@aws-amplify/ui-react
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import Layout from './routes/Layout';
-import Documents from './routes/Documents';
 import Chat from './routes/Chat';
 
 import './index.css';
