@@ -1,15 +1,32 @@
-import { RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Duration } from 'aws-cdk-lib';
 import { LambdaPowertoolsLayer } from 'cdk-aws-lambda-powertools-layer';
-import { PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { bedrock } from '@cdklabs/generative-ai-cdk-constructs';
-import * as path from 'path';
+import { CanonicalUserPrincipal, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { BucketDeployment, ServerSideEncryption, Source } from 'aws-cdk-lib/aws-s3-deployment';
+import { BlockPublicAccess, Bucket, HttpMethods } from 'aws-cdk-lib/aws-s3';
 import { BedrockAgent, BedrockAgentProps } from './constructs/bedrock';
+import { AccountRecovery, UserPool, UserPoolClient, UserPoolDomain, UserPoolEmail, VerificationEmailStyle } from 'aws-cdk-lib/aws-cognito';
+import {
+  CloudFrontAllowedMethods,
+  CloudFrontWebDistribution,
+  GeoRestriction,
+  OriginAccessIdentity,
+  PriceClass,
+  SSLMethod,
+  SecurityPolicyProtocol,
+  ViewerCertificate,
+} from 'aws-cdk-lib/aws-cloudfront';
+import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
+import { CacheControl } from 'aws-cdk-lib/aws-codepipeline-actions';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import * as path from 'path';
+
+const dotenv = require('dotenv');
+dotenv.config();
 
 interface AxelaStackProps extends StackProps {
   appName: string;
@@ -20,6 +37,55 @@ interface AxelaStackProps extends StackProps {
 export class AxelaStack extends Stack {
   constructor(scope: Construct, id: string, props: AxelaStackProps) {
     super(scope, id, props);
+
+    /**********
+     * Auth
+     **********/
+
+    const userPool = new UserPool(this, 'UserPool', {
+      userPoolName: `${props.appName}_user_pool_${props.envName}`,
+      selfSignUpEnabled: true,
+      accountRecovery: AccountRecovery.EMAIL_ONLY,
+      autoVerify: {
+        email: true,
+      },
+      email: UserPoolEmail.withSES({
+        // @ts-ignore
+        fromEmail: process.env.SENDER_EMAIL,
+        fromName: 'Travel Agent',
+        sesRegion: this.region,
+      }),
+      userVerification: {
+        emailSubject: 'Travel Agent - Verify your new account',
+        emailBody: 'Thanks for signing up! Please enter the verification code {####} to confirm your account.',
+        emailStyle: VerificationEmailStyle.CODE,
+      },
+      signInAliases: {
+        username: false,
+        email: true,
+      },
+      standardAttributes: {
+        email: {
+          required: true,
+          mutable: true,
+        },
+      },
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
+    new UserPoolDomain(this, `UserPoolDomain`, {
+      userPool: userPool,
+      cognitoDomain: {
+        domainPrefix: `${props.appName}-${props.envName}`,
+      },
+    });
+
+    const userPoolClient = new UserPoolClient(this, 'UserPoolWebClient', {
+      userPoolClientName: `${props.appName}_user_client`,
+      accessTokenValidity: Duration.hours(4),
+      idTokenValidity: Duration.hours(4),
+      userPool,
+    });
 
     /**********
      Storage
@@ -110,7 +176,14 @@ export class AxelaStack extends Stack {
       bedrockRegion: 'us-east-1',
       agentName: 'RetailAgentCDK',
       instruction:
-        'You are an agent that helps members search for a flight. Members with a saved credit card and/or reward dollars can use it to pay for part of all of the flight so ensure you retrieve member and reward dollar balances with their membership number or member ID. If they did not specify a departure city, ask if they are departing from same the city you retrieved from the member information. Once you confirm, check for available flights matching the destination city. For each flight available, let the member know the flight ID, airline, departure and arrival date/time, and price. If the member would like to book the flight, use the previously saved credit card to book the flight for the member. If reward dollars were used to pay for any of the flight, let them know the remaining cost of the flight if they were applied, and how many reward dollars would remain if they applied them.',
+        'You are an agent that helps members search for a flight. Members with a saved credit card and/or reward dollars can use it \
+        to pay for part of all of the flight so ensure you retrieve member and reward dollar balances with their membership number \
+        or member ID. If they did not specify a departure city, ask if they are departing from same the city you retrieved from the \
+        member information. Once you confirm, check for available flights matching the destination city. For each flight available, \
+        let the member know the flight ID, airline, departure and arrival date/time, and price. If the member would like to book the \
+        flight, use the previously saved credit card to book the flight for the member. If reward dollars were used to pay for any \
+        of the flight, let them know the remaining cost of the flight if they were applied, and how many reward dollars would remain \
+        if they applied them.',
       foundationModel: 'anthropic.claude-v2:1',
       agentResourceRoleArn: agentRole.roleArn,
       idleSessionTTLInSeconds: 600,
@@ -141,106 +214,120 @@ export class AxelaStack extends Stack {
 
     new BedrockAgent(this, 'BedrockAgent', bedrockAgentProps);
 
-    // Method 2: AWS Samples Generative AI Constructs - https://github.com/awslabs/generative-ai-cdk-constructs
-    // // NOTE: This will cost $700/month to spin up OpenSearch Service
-    // // const kb = new bedrock.KnowledgeBase(this, 'KnowledgeBase', {
-    // //   embeddingsModel: bedrock.BedrockFoundationModel.TITAN_EMBED_TEXT_V1,
-    // //   instruction: 'Search for the latitude and longitude of the city provided in the prompt',
-    // // });
+    //**********
+    // Frontend
+    //**********
 
-    // const agent = new bedrock.Agent(this, 'BedrockAgent', {
-    //   name: 'RetailAgent',
-    //   foundationModel: bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_V2_1,
-    //   instruction:
-    //     'You are an agent that helps members search for a flight. Members with available reward dollars can use them to pay \
-    //     for part or all of the flight so ensure you retrieve member and reward dollar balances with their membership number or member ID. \
-    //     Then, check to see if they have any available reward dollars and let them know their balance. \
-    //     If they did not specify a departure city, ask if they are departing from same the city you retrieved from the member information. \
-    //     Always address the member by their name. \
-    //     Once you confirm, check for available flights matching the destination city. For each flight available, \
-    //     let the member know the flight ID, airline, departure and arrival date/time, and price. \
-    //     If the member would like to book the flight, use the flight ID and member ID to generate a URL link to our booking website \
-    //     and send it to the member so they can finish booking and purchasing the flight. \
-    //     If reward dollars are to be used to book the flight, let them know the remaining cost of the flight if they were applied, \
-    //     and how many reward dollars would remain if they applied them.',
-    //   idleSessionTTL: Duration.minutes(30),
-    //   // knowledgeBases: [kb],
-    //   shouldPrepareAgent: true,
-    //   // TODO: Investigate advanced prompt templates
-    //   // promptOverrideConfiguration: {
-    //   //   promptConfigurations: [
-    //   //     {
-    //   //       promptType: bedrock.PromptType.ORCHESTRATION,
-    //   //       promptState: bedrock.PromptState.ENABLED,
-    //   //       promptCreationMode: bedrock.PromptCreationMode.OVERRIDDEN,
-    //   //       basePromptTemplate: orchestration,
-    //   //       inferenceConfiguration: {
-    //   //         temperature: 0.0,
-    //   //         topP: 1,
-    //   //         topK: 250,
-    //   //         maximumLength: 2048,
-    //   //         stopSequences: ['</invoke>', '</answer>', '</error>'],
-    //   //       },
-    //   //     },
-    //   //   ],
-    //   // },
-    // });
-    // agent.role?.addManagedPolicy({ managedPolicyArn: 'arn:aws:iam::aws:policy/AmazonS3FullAccess' });
-    // agent.role?.addManagedPolicy({ managedPolicyArn: 'arn:aws:iam::aws:policy/AWSLambda_FullAccess' });
-    // agent.role?.addToPolicy(
-    //   new PolicyStatement({
-    //     actions: ['bedrock:*'],
-    //     resources: ['*'],
-    //   })
-    // );
+    const cloudfrontOAI = new OriginAccessIdentity(this, 'CloudFrontOAI', {
+      comment: `OAI for Travel Agent CloudFront`,
+    });
 
-    // const memberAgentGroup = new bedrock.AgentActionGroup(this, 'MemberAgentGroup', {
-    //   actionGroupName: 'MemberActionGroup',
-    //   agent,
-    //   apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'member_service.json'),
-    //   actionGroupState: 'ENABLED',
-    //   actionGroupExecutor: memberAgentFunction,
-    //   shouldPrepareAgent: true,
-    // });
+    const websiteBucket = new Bucket(this, 'WebsiteBucket', {
+      bucketName: `${props.appName}-website-${props.envName}`,
+      websiteIndexDocument: 'index.html',
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      publicReadAccess: false,
+      cors: [
+        {
+          allowedHeaders: ['Authorization', 'Content-Length'],
+          allowedMethods: [HttpMethods.GET],
+          allowedOrigins: ['*'],
+          maxAge: 3000,
+        },
+      ],
+      autoDeleteObjects: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+    websiteBucket.addToResourcePolicy(
+      new PolicyStatement({
+        actions: ['s3:GetObject'],
+        resources: [websiteBucket.arnForObjects('*')],
+        principals: [new CanonicalUserPrincipal(cloudfrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId)],
+      })
+    );
 
-    // const rewardsAgentGroup = new bedrock.AgentActionGroup(this, 'RewardsAgentGroup', {
-    //   actionGroupName: 'RewardsAgentGroup',
-    //   agent,
-    //   apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'rewards_service.json'),
-    //   actionGroupState: 'ENABLED',
-    //   actionGroupExecutor: rewardsAgentFunction,
-    //   shouldPrepareAgent: true,
-    // });
+    // @ts-ignore
+    // Existing ACM certificate
+    const certificate = Certificate.fromCertificateArn(this, 'Certificate', process.env.CERTIFICATE_ARN);
 
-    // const travelAgentGroup = new bedrock.AgentActionGroup(this, 'TravelAgentGroup', {
-    //   actionGroupName: 'TravelAgentGroup',
-    //   agent,
-    //   apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'travel_service.json'),
-    //   actionGroupState: 'ENABLED',
-    //   actionGroupExecutor: travelAgentFunction,
-    //   shouldPrepareAgent: true,
-    // });
+    const distribution = new CloudFrontWebDistribution(this, 'CloudFrontDistribution', {
+      priceClass: PriceClass.PRICE_CLASS_100,
+      defaultRootObject: 'container/latest/index.html',
+      originConfigs: [
+        {
+          s3OriginSource: {
+            s3BucketSource: websiteBucket,
+            originAccessIdentity: cloudfrontOAI,
+          },
+          behaviors: [
+            {
+              isDefaultBehavior: true,
+              defaultTtl: Duration.hours(1),
+              minTtl: Duration.seconds(0),
+              maxTtl: Duration.days(1),
+              compress: true,
+              allowedMethods: CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
+            },
+          ],
+        },
+      ],
+      geoRestriction: GeoRestriction.allowlist('CA'),
+      errorConfigurations: [
+        {
+          errorCode: 403,
+          errorCachingMinTtl: 60,
+          responseCode: 200,
+          responsePagePath: '/index.html',
+        },
+      ],
+      viewerCertificate:
+        props.envName === 'prod'
+          ? ViewerCertificate.fromAcmCertificate(certificate, {
+              aliases: ['axela.ericbach.dev'],
+              securityPolicy: SecurityPolicyProtocol.TLS_V1_2_2021,
+              sslMethod: SSLMethod.SNI,
+            })
+          : undefined,
+    });
 
-    // // Ensure bucket deployment completes before agent action group so the files are available
-    // memberAgentGroup.node.addDependency(bucketDeployment);
-    // rewardsAgentGroup.node.addDependency(bucketDeployment);
-    // travelAgentGroup.node.addDependency(bucketDeployment);
+    if (props.envName === 'prod') {
+      // Route53 HostedZone A record
+      var existingHostedZone = HostedZone.fromLookup(this, 'Zone', {
+        domainName: 'ericbach.dev',
+      });
+      new ARecord(this, 'AliasRecord', {
+        zone: existingHostedZone,
+        recordName: 'axela.ericbach.dev',
+        target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
+      });
+    }
 
-    // // Grant Bedrock Agent permissions to invoke the Lambda function
-    // memberAgentFunction.addPermission('InvokeFunction', {
-    //   principal: new ServicePrincipal('bedrock.amazonaws.com'),
-    //   action: 'lambda:InvokeFunction',
-    //   sourceArn: agent.agentArn,
-    // });
-    // rewardsAgentFunction.addPermission('InvokeFunction', {
-    //   principal: new ServicePrincipal('bedrock.amazonaws.com'),
-    //   action: 'lambda:InvokeFunction',
-    //   sourceArn: agent.agentArn,
-    // });
-    // travelAgentFunction.addPermission('InvokeFunction', {
-    //   principal: new ServicePrincipal('bedrock.amazonaws.com'),
-    //   action: 'lambda:InvokeFunction',
-    //   sourceArn: agent.agentArn,
-    // });
+    new BucketDeployment(this, 'WebsiteBucketDeployment', {
+      sources: [Source.asset(path.join(__dirname, '../../frontend/dist'))],
+      destinationBucket: websiteBucket,
+      retainOnDelete: false,
+      contentLanguage: 'en',
+      //storageClass: StorageClass.INTELLIGENT_TIERING,
+      serverSideEncryption: ServerSideEncryption.AES_256,
+      cacheControl: [CacheControl.setPublic(), CacheControl.maxAge(Duration.minutes(1))],
+      distribution,
+      distributionPaths: ['/static/css/*'],
+    });
+
+    // /**********
+    //  * Outputs
+    //  **********/
+
+    new CfnOutput(this, 'UserPoolId', {
+      value: userPool.userPoolId,
+    });
+
+    new CfnOutput(this, 'UserPoolClientId', {
+      value: userPoolClient.userPoolClientId,
+    });
+
+    new CfnOutput(this, 'CloudFrontDistributionName', {
+      value: distribution.distributionDomainName,
+    });
   }
 }
