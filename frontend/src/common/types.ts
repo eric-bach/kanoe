@@ -13,14 +13,8 @@ export interface Document {
 }
 
 export interface Conversation {
-  conversationId: string;
-  document: Document;
   messages: {
     type: string;
-    data: {
-      content: string;
-      example: boolean;
-      additional_kwargs: {};
-    };
+    content: string;
   }[];
 }

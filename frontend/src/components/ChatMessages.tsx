@@ -13,7 +13,14 @@ interface ChatMessagesProps {
   submitMessage: (event: any) => Promise<void>;
 }
 
-const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoadingMessage, submitMessage, handlePromptChange, handleKeyPress }) => {
+const ChatMessages: React.FC<ChatMessagesProps> = ({
+  prompt,
+  conversation,
+  isLoadingMessage,
+  submitMessage,
+  handlePromptChange,
+  handleKeyPress,
+}) => {
   return (
     <Grid item={true} md={8}>
       <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '5px' }}>
@@ -37,7 +44,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
                     marginBottom: 2,
                   }}
                 >
-                  {message.data.content}
+                  {message.content}
                 </Typography>
               ) : (
                 <Typography
@@ -54,7 +61,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
                     marginBottom: 2,
                   }}
                 >
-                  {message.data.content}
+                  {message.content}
                 </Typography>
               )}
             </div>
@@ -69,7 +76,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
             value={prompt}
             onChange={handlePromptChange}
             onKeyDown={handleKeyPress}
-            placeholder={'Ask ' + conversation?.document.filename + ' anything...'}
+            placeholder={'Ask anything...'}
             sx={{ width: '100%' }}
             InputProps={{
               endAdornment: (

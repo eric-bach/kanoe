@@ -18,6 +18,15 @@ logger = Logger()
 def handler(event, context):
     event_body = json.loads(event["body"])
     prompt = event_body["prompt"]
+    conversation = event_body["conversation"]
+
+    print("Conversation", conversation)
+    print("Conversation Messages", conversation["messages"])
+    if not conversation["messages"]:
+        conversation["messages"] = [{'type': 'human', 'content': prompt}]
+    else:
+        conversation["messages"].append({'type': 'human', 'content': prompt})
+    print("Conversation", conversation)
 
     paginator = ddb_client.get_paginator("scan")
     connectionIds = []
@@ -67,7 +76,7 @@ def handler(event, context):
 
             api_gateway_management_api.post_to_connection(
                 ConnectionId=connectionId["connectionId"]["S"],
-                Data=json.dumps({"message": agent_answer})
+                Data=json.dumps({"messages": conversation, "prompt": agent_answer})
             )
         except Exception as e:
              logger.error(f"Error sending message to connectionId {connectionId}: {e}")
