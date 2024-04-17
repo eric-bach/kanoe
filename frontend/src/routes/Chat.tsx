@@ -6,7 +6,7 @@ import { Conversation } from '../common/types';
 const Chat: React.FC = () => {
   const [isLoadingMessage, setLoadingMessage] = useState<boolean>(false);
 
-  const [conversation, setConversation] = React.useState<Conversation>({ messages: [] });
+  const [conversation, setConversation] = React.useState<Conversation>({ messages: [], traces: [] });
   const [prompt, setPrompt] = useState('');
 
   const [client, setClient] = useState<WebSocket>();
@@ -45,7 +45,7 @@ const Chat: React.FC = () => {
       console.log('Received message', event);
 
       setPrompt('');
-      setConversation({ messages: [...event.messages.messages, { type: 'ai', content: event.prompt }] });
+      setConversation({ messages: [...event.messages.messages, { type: 'ai', content: event.prompt }], traces: [...event.messages.traces] });
 
       console.log('Current conversation', JSON.stringify(conversation));
 

@@ -17,4 +17,5 @@ export interface Conversation {
     type: string;
     content: string;
   }[];
+  traces: any;
 }

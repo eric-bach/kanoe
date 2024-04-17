@@ -62,13 +62,24 @@ def handler(event, context):
                 end_event_received = True
                 # End event indicates that the request finished successfully
             elif 'trace' in event:
+                print("🔔 Trace", json.dumps(event['trace']))
+                
+                if not conversation["traces"]:
+                    conversation["traces"] = [event['trace']]
+                else:
+                    conversation["traces"].append(event['trace'])
+
                 logger.info(json.dumps(event['trace'], indent=2))
             else:
                 raise Exception("unexpected event.", event)
     except Exception as e:
+        #print("Exception", e)
         raise Exception("unexpected event.", e)
 
+    print("🚀 Final Trace", conversation["traces"])
+
     # Send message to all connected clients
+    print("Conversation Final", conversation)
     for connectionId in connectionIds:
         try:
             logger.info("Sending message to connectionId: " + connectionId["connectionId"]["S"])
