@@ -20,13 +20,12 @@ def handler(event, context):
     prompt = event_body["prompt"]
     conversation = event_body["conversation"]
 
-    print("Conversation", conversation)
-    print("Conversation Messages", conversation["messages"])
+    print("Received conversation:", conversation)
     if not conversation["messages"]:
-        conversation["messages"] = [{'type': 'human', 'content': prompt}]
+        conversation["messages"] = [{'type': 'human', 'content': prompt, 'debug': {}}]
     else:
-        conversation["messages"].append({'type': 'human', 'content': prompt})
-    print("Conversation", conversation)
+        conversation["messages"].append({'type': 'human', 'content': prompt, 'debug': {}})
+    print("Initialized conversation:", conversation)
 
     paginator = ddb_client.get_paginator("scan")
     connectionIds = []
@@ -53,41 +52,71 @@ def handler(event, context):
 
     event_stream = response['completion']
     try:
+        debug_event = []
         for event in event_stream:
-            print("Event", event)    
-            if 'chunk' in event:
+            print("Event", event)
+
+            if 'trace' in event:
+                #print("🔔🔔 Full Trace", json.dumps(event['trace']))
+                trace = event['trace']['trace']
+                sessionId = event['trace']['sessionId']
+                phase = 'preProcessingTrace'
+                if 'orchestrationTrace' in trace:
+                    phase = 'orchestrationTrace'
+                elif 'postProcessingTrace' in trace:
+                    phase = 'postProcessingTrace'
+
+                print("👉 Session", sessionId)
+                print("👉 Phase", phase)
+                print("👉 Trace", json.dumps(trace))
+
+                if not debug_event:
+                    debug_event = [trace]
+                else:
+                    debug_event.append(trace)
+                # if not conversation["traces"]:
+                #     print("Creating a new trace")
+                #     conversation["traces"][sessionId] = [trace]
+                # else:
+                #     if not conversation["traces"].get(sessionId):
+                #         print("Creating a new session")
+                #         conversation["traces"][sessionId] = [trace]
+                #     else:
+                #         print("Appending to existing trace")
+                #         conversation["traces"][sessionId].append(trace)
+
+                logger.info(trace)
+
+            elif 'chunk' in event:
                 data = event['chunk']['bytes']
                 logger.info(f"Final answer ->\n{data.decode('utf8')}") 
                 agent_answer = data.decode('utf8')
                 end_event_received = True
                 # End event indicates that the request finished successfully
-            elif 'trace' in event:
-                print("🔔 Trace", json.dumps(event['trace']))
-                
-                if not conversation["traces"]:
-                    conversation["traces"] = [event['trace']]
-                else:
-                    conversation["traces"].append(event['trace'])
 
-                logger.info(json.dumps(event['trace'], indent=2))
             else:
                 raise Exception("unexpected event.", event)
     except Exception as e:
         #print("Exception", e)
         raise Exception("unexpected event.", e)
 
-    print("🚀 Final Trace", conversation["traces"])
+    print("🚀 Final debug trace", debug_event)
+    print("🚀 Final answer", agent_answer)
+    convo = {'content': agent_answer, 'type': 'agent', 'debug': debug_event}
+    print("🚀 Conversation", convo)
+    conversation["messages"].append(convo)
+    print("🚀🚀🚀 Final conversation", conversation['messages'])
 
     # Send message to all connected clients
     print("Conversation Final", conversation)
     for connectionId in connectionIds:
         try:
             logger.info("Sending message to connectionId: " + connectionId["connectionId"]["S"])
-            print("Message", agent_answer)
 
             api_gateway_management_api.post_to_connection(
                 ConnectionId=connectionId["connectionId"]["S"],
-                Data=json.dumps({"messages": conversation, "prompt": agent_answer})
+                Data=json.dumps({"messages": conversation["messages"]})
+                #Data=json.dumps({"messages": conversation, "prompt": agent_answer})
             )
         except Exception as e:
              logger.error(f"Error sending message to connectionId {connectionId}: {e}")

@@ -2,11 +2,13 @@ import { Auth } from 'aws-amplify';
 import React, { useEffect, useState, KeyboardEvent } from 'react';
 import ChatMessages from '../components/ChatMessages';
 import { Conversation } from '../common/types';
+import ChatDebug from '../components/ChatDebug';
+import { Grid } from '@mui/material';
 
 const Chat: React.FC = () => {
   const [isLoadingMessage, setLoadingMessage] = useState<boolean>(false);
 
-  const [conversation, setConversation] = React.useState<Conversation>({ messages: [], traces: [] });
+  const [conversation, setConversation] = React.useState<Conversation>({ messages: [] });
   const [prompt, setPrompt] = useState('');
 
   const [client, setClient] = useState<WebSocket>();
@@ -45,7 +47,7 @@ const Chat: React.FC = () => {
       console.log('Received message', event);
 
       setPrompt('');
-      setConversation({ messages: [...event.messages.messages, { type: 'ai', content: event.prompt }], traces: [...event.messages.traces] });
+      setConversation({ messages: [...event.messages] });
 
       console.log('Current conversation', JSON.stringify(conversation));
 
@@ -95,7 +97,7 @@ const Chat: React.FC = () => {
   };
 
   return (
-    <>
+    <Grid container columns={12}>
       <ChatMessages
         prompt={prompt}
         conversation={conversation}
@@ -104,7 +106,7 @@ const Chat: React.FC = () => {
         handleKeyPress={handleKeyPress}
         handlePromptChange={handlePromptChange}
       />
-    </>
+    </Grid>
   );
 };
 

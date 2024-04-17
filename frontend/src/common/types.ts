@@ -16,6 +16,6 @@ export interface Conversation {
   messages: {
     type: string;
     content: string;
+    debug: any;
   }[];
-  traces: any;
 }
