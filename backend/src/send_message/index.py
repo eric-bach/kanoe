@@ -57,7 +57,7 @@ def handler(event, context):
             print("Event", event)
 
             if 'trace' in event:
-                #print("🔔🔔 Full Trace", json.dumps(event['trace']))
+                #print("🟡 Full Trace", json.dumps(event['trace']))
                 trace = event['trace']['trace']
                 sessionId = event['trace']['sessionId']
                 phase = 'preProcessingTrace'
@@ -89,16 +89,15 @@ def handler(event, context):
 
             elif 'chunk' in event:
                 data = event['chunk']['bytes']
-                logger.info(f"Final answer ->\n{data.decode('utf8')}") 
+                logger.info(f"🟢 Final answer ->\n{data.decode('utf8')}") 
                 agent_answer = data.decode('utf8')
                 end_event_received = True
                 # End event indicates that the request finished successfully
 
             else:
-                raise Exception("unexpected event.", event)
+                raise Exception("Unexpected event", event)
     except Exception as e:
-        #print("Exception", e)
-        raise Exception("unexpected event.", e)
+        raise Exception("Unexpected event", e)
 
     print("🚀 Final debug trace", debug_event)
     print("🚀 Final answer", agent_answer)
@@ -116,7 +115,6 @@ def handler(event, context):
             api_gateway_management_api.post_to_connection(
                 ConnectionId=connectionId["connectionId"]["S"],
                 Data=json.dumps({"messages": conversation["messages"]})
-                #Data=json.dumps({"messages": conversation, "prompt": agent_answer})
             )
         except Exception as e:
              logger.error(f"Error sending message to connectionId {connectionId}: {e}")

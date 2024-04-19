@@ -2,7 +2,6 @@ import { Auth } from 'aws-amplify';
 import React, { useEffect, useState, KeyboardEvent } from 'react';
 import ChatMessages from '../components/ChatMessages';
 import { Conversation } from '../common/types';
-import ChatDebug from '../components/ChatDebug';
 import { Grid } from '@mui/material';
 
 const Chat: React.FC = () => {
