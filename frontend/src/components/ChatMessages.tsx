@@ -127,7 +127,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
       <Grid item={true} md={2} />
 
       <Drawer anchor='right' open={open} onClose={toggleDrawer(showDebug, false)}>
-        <Box sx={{ width: '800px' }} role='presentation' onClick={toggleDrawer(showDebug, false)}>
+        <Box sx={{ width: '800px' }} role='presentation'>
           <ChatDebug debug={debug} />
         </Box>
       </Drawer>
