@@ -74,16 +74,6 @@ def handler(event, context):
                     debug_event = [trace]
                 else:
                     debug_event.append(trace)
-                # if not conversation["traces"]:
-                #     print("Creating a new trace")
-                #     conversation["traces"][sessionId] = [trace]
-                # else:
-                #     if not conversation["traces"].get(sessionId):
-                #         print("Creating a new session")
-                #         conversation["traces"][sessionId] = [trace]
-                #     else:
-                #         print("Appending to existing trace")
-                #         conversation["traces"][sessionId].append(trace)
 
                 logger.info(trace)
 
@@ -99,12 +89,9 @@ def handler(event, context):
     except Exception as e:
         raise Exception("Unexpected event", e)
 
-    print("🚀 Final debug trace", debug_event)
-    print("🚀 Final answer", agent_answer)
     convo = {'content': agent_answer, 'type': 'agent', 'debug': debug_event}
-    print("🚀 Conversation", convo)
     conversation["messages"].append(convo)
-    print("🚀🚀🚀 Final conversation", conversation['messages'])
+    print("🚀 Conversation", convo)
 
     # Send message to all connected clients
     print("Conversation Final", conversation)
