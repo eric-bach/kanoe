@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { AxelaStack } from '../lib/axela-stack';
-import { AxelaApiStack } from '../lib/api-stack';
+import { TravelAgentStack } from '../lib/travel-agent-stack';
+import { ApiStack } from '../lib/api-stack';
 
 const app = new cdk.App();
 
@@ -12,6 +12,7 @@ const envName = app.node.tryGetContext('envName');
 const baseProps: cdk.StackProps = {
   env: {
     region: 'us-east-1',
+    account: process.env.CDK_DEFAULT_ACCOUNT,
   },
   tags: {
     environment: envName,
@@ -19,6 +20,6 @@ const baseProps: cdk.StackProps = {
   },
 };
 
-const api = new AxelaApiStack(app, `${appName}-api-${envName}`, { ...baseProps, appName, envName });
+const api = new ApiStack(app, `${appName}-api-${envName}`, { ...baseProps, appName, envName });
 
-new AxelaStack(app, `${appName}-agents-${envName}`, { ...baseProps, appName, envName, restApiUrl: api.restApiUrl });
+new TravelAgentStack(app, `${appName}-agents-${envName}`, { ...baseProps, appName, envName, restApiUrl: api.restApiUrl });

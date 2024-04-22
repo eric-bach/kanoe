@@ -1,20 +1,19 @@
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { CfnOutput, Duration, Stack, StackProps } from 'aws-cdk-lib';
 import { LambdaIntegration, MockIntegration, Model, RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { LambdaPowertoolsLayer } from 'cdk-aws-lambda-powertools-layer';
 import { Construct } from 'constructs';
 
-interface AxelaApiStackProps extends StackProps {
+interface ApiStackProps extends StackProps {
   appName: string;
   envName: string;
 }
 
-export class AxelaApiStack extends Stack {
+export class ApiStack extends Stack {
   public restApiUrl: string;
 
-  constructor(scope: Construct, id: string, props: AxelaApiStackProps) {
+  constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
     /**********

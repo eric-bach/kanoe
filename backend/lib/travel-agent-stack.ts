@@ -32,14 +32,14 @@ import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integra
 const dotenv = require('dotenv');
 dotenv.config();
 
-interface AxelaStackProps extends StackProps {
+interface TravelAgentStackProps extends StackProps {
   appName: string;
   envName: string;
   restApiUrl: string;
 }
 
-export class AxelaStack extends Stack {
-  constructor(scope: Construct, id: string, props: AxelaStackProps) {
+export class TravelAgentStack extends Stack {
+  constructor(scope: Construct, id: string, props: TravelAgentStackProps) {
     super(scope, id, props);
 
     /**********
@@ -185,7 +185,7 @@ export class AxelaStack extends Stack {
 
     const bedrockAgentProps: BedrockAgentProps = {
       bedrockRegion: 'us-east-1',
-      agentName: 'RetailAgentCDK',
+      agentName: 'TravelAgent',
       instruction:
         'You are an agent that helps members search for a flight. Members with a saved credit card and/or reward dollars can use it \
         to pay for part of all of the flight so ensure you retrieve member and reward dollar balances with their membership number \
@@ -275,7 +275,7 @@ export class AxelaStack extends Stack {
     });
 
     // TODO Change this each time agent is created
-    const AGENT_ID = 'ZXO44HCY0H';
+    const AGENT_ID = 'Y0C25OEQR3'; //UANIRJK8QF
     const sendMessage = new PythonFunction(this, 'SendMessage', {
       functionName: `${props.appName}-SendMessage-${props.envName}`,
       entry: 'src/send_message',
@@ -409,7 +409,7 @@ export class AxelaStack extends Stack {
       viewerCertificate:
         props.envName === 'prod'
           ? ViewerCertificate.fromAcmCertificate(certificate, {
-              aliases: ['axela.ericbach.dev'],
+              aliases: ['flights.ericbach.dev'],
               securityPolicy: SecurityPolicyProtocol.TLS_V1_2_2021,
               sslMethod: SSLMethod.SNI,
             })
@@ -423,7 +423,7 @@ export class AxelaStack extends Stack {
       });
       new ARecord(this, 'AliasRecord', {
         zone: existingHostedZone,
-        recordName: 'axela.ericbach.dev',
+        recordName: 'flights.ericbach.dev',
         target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
       });
     }
