@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import ReactJson from '@microlink/react-json-view';
 
 interface ChatDebugProps {
@@ -8,7 +8,7 @@ interface ChatDebugProps {
 
 const ChatDebug: React.FC<ChatDebugProps> = ({ debug }) => {
   return (
-    <>
+    <Box sx={{ mt: '90px', mr: '20px', mb: '20px', ml: '20px' }}>
       <Typography variant='h5' sx={{ pb: '15px' }}>
         Debug Trace
       </Typography>
@@ -16,7 +16,7 @@ const ChatDebug: React.FC<ChatDebugProps> = ({ debug }) => {
       {debug.map((trace: any, i: any) => (
         <ReactJson src={trace} />
       ))}
-    </>
+    </Box>
   );
 };
 

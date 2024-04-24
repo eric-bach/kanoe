@@ -1,17 +1,41 @@
-import { CfnOutput, Stack, StackProps } from 'aws-cdk-lib';
-import { MockIntegration, Model, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
+import { CfnOutput, Duration, Stack, StackProps } from 'aws-cdk-lib';
+import { LambdaIntegration, MockIntegration, Model, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { LambdaPowertoolsLayer } from 'cdk-aws-lambda-powertools-layer';
 import { Construct } from 'constructs';
 
-interface AxelaApiStackProps extends StackProps {
+interface ApiStackProps extends StackProps {
   appName: string;
   envName: string;
 }
 
-export class AxelaApiStack extends Stack {
+export class ApiStack extends Stack {
   public restApiUrl: string;
 
-  constructor(scope: Construct, id: string, props: AxelaApiStackProps) {
+  constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
+
+    /**********
+      Lambda Functions
+     **********/
+
+    // Lambda Powertools Layer
+    const powertoolsLayer = new LambdaPowertoolsLayer(this, 'PowertoolsLayer', {
+      version: '2.32.0',
+      includeExtras: true,
+    });
+
+    const getAirportCode = new PythonFunction(this, 'GetAirportCode', {
+      functionName: `${props.appName}-GetAirportCode-${props.envName}`,
+      entry: 'src/get_airport_code',
+      runtime: Runtime.PYTHON_3_10,
+      architecture: Architecture.ARM_64,
+      memorySize: 256,
+      timeout: Duration.seconds(5),
+      retryAttempts: 0,
+      layers: [powertoolsLayer],
+    });
 
     /**********
       Mock APIs
@@ -80,32 +104,14 @@ export class AxelaApiStack extends Stack {
 
     // GET /airport/{city}
 
-    const getAirportCodeMockIntegration = new MockIntegration({
+    const getAirportCodeLambdaIntegration = new LambdaIntegration(getAirportCode, {
       requestTemplates: {
         'application/json': '{"statusCode": 200}',
       },
-      integrationResponses: [
-        {
-          statusCode: '200',
-          responseTemplates: {
-            'application/json': '{"id": "CDG"}',
-          },
-        },
-      ],
     });
 
-    const getAirportCode = restapi.root.addResource('airport').addResource('{city}');
-
-    getAirportCode.addMethod('GET', getAirportCodeMockIntegration, {
-      methodResponses: [
-        {
-          statusCode: '200',
-          responseModels: {
-            'application/json': Model.EMPTY_MODEL,
-          },
-        },
-      ],
-    });
+    const getAirportCodeResource = restapi.root.addResource('airport').addResource('{city}');
+    getAirportCodeResource.addMethod('GET', getAirportCodeLambdaIntegration);
 
     // GET /flights/{departureId}/{arrivalId}/{date}
 

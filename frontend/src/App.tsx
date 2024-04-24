@@ -16,7 +16,7 @@ Amplify.configure({
   API: {
     endpoints: [
       {
-        name: 'axela-api',
+        name: 'travel-agent-api',
         endpoint: import.meta.env.VITE_API_ENDPOINT,
         region: import.meta.env.VITE_REGION,
         custom_header: async () => {

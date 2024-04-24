@@ -1,6 +1,22 @@
 import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
 import CircularProgress from '@mui/material/CircularProgress';
-import { Box, Button, TextField, Grid, IconButton, List, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Drawer,
+  TextField,
+  Grid,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  Typography,
+} from '@mui/material';
+import InboxIcon from '@mui/icons-material/MoveToInbox';
+import MailIcon from '@mui/icons-material/Mail';
 import { Conversation } from '../common/types';
 import React from 'react';
 import ChatDebug from './ChatDebug';
@@ -16,9 +32,10 @@ interface ChatMessagesProps {
 
 const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoadingMessage, submitMessage, handlePromptChange, handleKeyPress }) => {
   const [showDebug, setShowDebug] = React.useState<number>(0);
+  const [open, setOpen] = React.useState<boolean>(false);
   const [debug, setDebug] = React.useState<any[]>([]);
 
-  function handleClick(i: number) {
+  const toggleDrawer = (i: number, open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
     if (i === showDebug) {
       setShowDebug(0);
       setDebug([]);
@@ -26,11 +43,14 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
       setShowDebug(i);
       setDebug(conversation?.messages[i].debug);
     }
-  }
+
+    setOpen(open);
+  };
 
   return (
     <>
-      <Grid item={true} md={6} sx={{ pr: '30px' }}>
+      <Grid item={true} md={2} />
+      <Grid item={true} md={8} sx={{ pr: '30px' }}>
         <Typography variant='h5' sx={{ pb: '15px' }}>
           Conversation
         </Typography>
@@ -57,7 +77,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
                   >
                     {message.content}
                     <br />
-                    <Button sx={{ color: 'white' }} disableRipple onClick={() => handleClick(i)}>
+                    <Button sx={{ color: 'white' }} disableRipple onClick={toggleDrawer(i, true)}>
                       Toggle Trace
                     </Button>
                   </Typography>
@@ -104,9 +124,13 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
           </Box>
         </Box>
       </Grid>
-      <Grid item={true} md={6}>
-        <ChatDebug debug={debug} />
-      </Grid>
+      <Grid item={true} md={2} />
+
+      <Drawer anchor='right' open={open} onClose={toggleDrawer(showDebug, false)}>
+        <Box sx={{ width: '800px' }} role='presentation'>
+          <ChatDebug debug={debug} />
+        </Box>
+      </Drawer>
     </>
   );
 };
