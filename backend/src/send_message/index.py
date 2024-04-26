@@ -19,6 +19,11 @@ def handler(event, context):
     event_body = json.loads(event["body"])
     prompt = event_body["prompt"]
     conversation = event_body["conversation"]
+    
+    # Initialize conversation
+    currentSessionId = conversation.get('sessionId')
+    if not currentSessionId:
+        currentSessionId = str(uuid.uuid4())
 
     print("Received conversation:", conversation)
     if not conversation["messages"]:
@@ -45,7 +50,7 @@ def handler(event, context):
         inputText=prompt,
         agentId=AGENT_ID,
         agentAliasId=AGENT_ALIAS_ID,
-        sessionId=str(uuid.uuid1()),
+        sessionId=currentSessionId,
         enableTrace=True
     )
     logger.info(response)
@@ -101,7 +106,7 @@ def handler(event, context):
 
             api_gateway_management_api.post_to_connection(
                 ConnectionId=connectionId["connectionId"]["S"],
-                Data=json.dumps({"messages": conversation["messages"]})
+                Data=json.dumps({"messages": conversation["messages"], 'sessionId': sessionId})
             )
         except Exception as e:
              logger.error(f"Error sending message to connectionId {connectionId}: {e}")
