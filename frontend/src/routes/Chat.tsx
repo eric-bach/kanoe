@@ -7,7 +7,7 @@ import { Grid } from '@mui/material';
 const Chat: React.FC = () => {
   const [isLoadingMessage, setLoadingMessage] = useState<boolean>(false);
 
-  const [conversation, setConversation] = React.useState<Conversation>({ messages: [] });
+  const [conversation, setConversation] = React.useState<Conversation>({ messages: [], sessionId: '' });
   const [prompt, setPrompt] = useState('');
 
   const [client, setClient] = useState<WebSocket>();
@@ -46,7 +46,7 @@ const Chat: React.FC = () => {
       console.log('Received message', event);
 
       setPrompt('');
-      setConversation({ messages: [...event.messages] });
+      setConversation({ messages: [...event.messages], sessionId: event.sessionId });
 
       console.log('Current conversation', JSON.stringify(conversation));
 

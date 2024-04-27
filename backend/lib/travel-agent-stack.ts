@@ -275,7 +275,7 @@ export class TravelAgentStack extends Stack {
     });
 
     // TODO Change this each time agent is created
-    const AGENT_ID = 'Y0C25OEQR3'; //UANIRJK8QF
+    const AGENT_ID = 'Y0C25OEQR3'; //Y0C25OEQR3, UANIRJK8QF
     const sendMessage = new PythonFunction(this, 'SendMessage', {
       functionName: `${props.appName}-SendMessage-${props.envName}`,
       entry: 'src/send_message',
