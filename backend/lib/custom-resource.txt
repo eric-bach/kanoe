@@ -1,0 +1,55 @@
+
+    // Method 1: Custom Resources - https://github.com/PieterjanCriel/bedrock-agents-cdk
+    const agentRole = new Role(this, 'AgentIamRole', {
+      roleName: 'AmazonBedrockExecutionRoleForAgents_' + 'RetailAgent',
+      assumedBy: new ServicePrincipal('bedrock.amazonaws.com'),
+      description: 'Agent role created by CDK.',
+    });
+    agentRole.addToPolicy(
+      new PolicyStatement({
+        actions: ['*'],
+        resources: ['arn:aws:bedrock:*'],
+      })
+    );
+    bucket.grantRead(agentRole);
+
+    const bedrockAgentProps: BedrockAgentProps = {
+      bedrockRegion: 'us-east-1',
+      agentName: 'TravelAgent',
+      instruction:
+        'You are an agent that helps members search for a flight. Members with a saved credit card and/or reward dollars can use it \
+        to pay for part of all of the flight if they decide to use it. Before searching for available flights, look up the members \
+        information. Then check for available flights matching the destination city. Let the member know the options for each available \
+        flight including the flight ID, airline, departure and arrival date/time, and price. If the member would like to book the \
+        flight, confirm if they would like to use the saved credit card to book the flight for the member and if they would like to \
+        use any of their available reward dollars to pay for any of the flkight.  Then let them know the remaining cost of the flight \
+        if they were applied, and how many reward dollars would remain.',
+      foundationModel: 'anthropic.claude-v2:1',
+      agentResourceRoleArn: agentRole.roleArn,
+      idleSessionTTLInSeconds: 600,
+      actionGroups: [
+        {
+          actionGroupName: 'MemberActionGroup',
+          actionGroupExecutor: memberAgentFunction.functionArn,
+          s3BucketName: bucket.bucketName,
+          s3ObjectKey: 'member_service.json',
+          description: 'Member Service Action Group',
+        },
+        {
+          actionGroupName: 'RewardsActionGroup',
+          actionGroupExecutor: rewardsAgentFunction.functionArn,
+          s3BucketName: bucket.bucketName,
+          s3ObjectKey: 'rewards_service.json',
+          description: 'Rewards Service Action Group',
+        },
+        {
+          actionGroupName: 'TravelActionGroup',
+          actionGroupExecutor: travelAgentFunction.functionArn,
+          s3BucketName: bucket.bucketName,
+          s3ObjectKey: 'travel_service.json',
+          description: 'Travel Service Action Group',
+        },
+      ],
+    };
+
+    const agent = new BedrockAgent(this, 'BedrockAgent', bedrockAgentProps);

@@ -41,6 +41,7 @@ const Chat: React.FC = () => {
       }
     };
 
+    // https://stackoverflow.com/questions/60588745/websocket-in-reactjs-is-setting-state-with-empty-array
     client.onmessage = async (message: any) => {
       const event = JSON.parse(message.data);
       console.log('Received message', event);
@@ -48,9 +49,6 @@ const Chat: React.FC = () => {
       setPrompt('');
       setConversation({ messages: [...event.messages], sessionId: event.sessionId });
 
-      console.log('Current conversation', JSON.stringify(conversation));
-
-      // fetchData(conversation?.conversationId);
       setLoadingMessage(false);
     };
 
@@ -59,8 +57,6 @@ const Chat: React.FC = () => {
 
   useEffect(() => {
     initializeClient();
-
-    //fetchData();
   }, []);
 
   const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
