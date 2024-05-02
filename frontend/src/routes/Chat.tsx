@@ -7,8 +7,8 @@ import { Grid } from '@mui/material';
 const Chat: React.FC = () => {
   const [isLoadingMessage, setLoadingMessage] = useState<boolean>(false);
 
-  const [sessionId, setSessionId] = React.useState<string>();
-  const [conversation, setConversation] = React.useState<Conversation[]>([{ type: '', message: '', traces: [] }]);
+  const [sessionId, setSessionId] = React.useState<string | null>(null);
+  const [conversation, setConversation] = React.useState<Conversation[] | undefined>();
   const [prompt, setPrompt] = useState('');
 
   const [client, setClient] = useState<WebSocket>();
@@ -48,9 +48,8 @@ const Chat: React.FC = () => {
       console.log('Received message', event);
 
       setPrompt('');
-      //setConversation({ messages: [...event.messages], sessionId: event.sessionId });
       setSessionId(event.sessionId);
-      setConversation((conversation) => [...conversation, event]);
+      setConversation((conversation) => [...(conversation || []), event.messages]);
 
       setLoadingMessage(false);
     };
@@ -75,23 +74,23 @@ const Chat: React.FC = () => {
   const submitMessage = async (event: any) => {
     setLoadingMessage(true);
 
-    console.log('Submitting ', prompt);
-
     const user = await Auth.currentAuthenticatedUser();
 
     if (event.key !== 'Enter') {
       return;
     }
 
-    client?.send(
-      JSON.stringify({
-        action: 'SendMessage',
-        userId: user.attributes.sub,
-        sessionId: sessionId,
-        prompt: prompt,
-        token: (await Auth.currentSession()).getIdToken().getJwtToken(),
-      })
-    );
+    const data = {
+      action: 'SendMessage',
+      userId: user.attributes.sub,
+      sessionId: sessionId,
+      prompt: prompt,
+      token: (await Auth.currentSession()).getIdToken().getJwtToken(),
+    };
+
+    console.log('Sending message', data);
+
+    client?.send(JSON.stringify(data));
   };
 
   return (

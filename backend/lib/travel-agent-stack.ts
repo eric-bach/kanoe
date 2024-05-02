@@ -494,6 +494,10 @@ export class TravelAgentStack extends Stack {
       value: userPoolClient.userPoolClientId,
     });
 
+    new CfnOutput(this, 'WebsocketUrl', {
+      value: webSocketApi.apiEndpoint,
+    });
+
     new CfnOutput(this, 'CloudFrontDistributionName', {
       value: distribution.distributionDomainName,
     });

@@ -18,12 +18,10 @@ logger = Logger()
 def handler(event, context):
     event_body = json.loads(event["body"])
     prompt = event_body["prompt"]
-    sessionId = event_body["sessionId"]
-    
-    # Initialize conversation
+    sessionId = event_body.get("sessionId")
     if not sessionId:
         sessionId = str(uuid.uuid4())
-
+    
     paginator = ddb_client.get_paginator("scan")
     connectionIds = []
 
@@ -49,6 +47,7 @@ def handler(event, context):
 
     event_stream = response['completion']
     try:
+        print("👉 Session", sessionId)
         debug_event = []
         for event in event_stream:
             print("Event", event)
@@ -63,9 +62,7 @@ def handler(event, context):
                 elif 'postProcessingTrace' in trace:
                     phase = 'postProcessingTrace'
 
-                print("👉 Session", sessionId)
-                print("👉 Phase", phase)
-                print("👉 Trace", json.dumps(trace))
+                print("👉 ", json.dumps(trace))
 
                 # Reduce payload size
                 # if phase is 'preProcessingTrace' and 'inferenceConfiguration' in trace['preProcessingTrace']['modelInvocationInput']:
@@ -92,7 +89,7 @@ def handler(event, context):
     except Exception as e:
         raise Exception("Unexpected event", e)
 
-    convo = {'content': agent_answer, 'type': 'agent', 'debug': debug_event}
+    convo = {'message': agent_answer, 'type': 'agent', 'traces': debug_event}
     print("🚀 Conversation", convo)
 
     # Send message to all connected clients

@@ -23,7 +23,7 @@ import ChatDebug from './ChatDebug';
 
 interface ChatMessagesProps {
   prompt: string;
-  conversation: Conversation[];
+  conversation: Conversation[] | undefined;
   isLoadingMessage: boolean;
   handlePromptChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleKeyPress: (event: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -41,7 +41,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
       setDebug([]);
     } else {
       setShowDebug(i);
-      setDebug(conversation[i]?.traces);
+      setDebug(conversation ? conversation[i]?.traces : []);
     }
 
     setOpen(open);
@@ -56,7 +56,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '5px' }}>
           <List>
-            {conversation.map((message, i) => (
+            {conversation?.map((message, i) => (
               <div key={i}>
                 {message.type === 'agent' ? (
                   <Typography
