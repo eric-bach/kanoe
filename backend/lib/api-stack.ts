@@ -177,8 +177,6 @@ export class ApiStack extends Stack {
      Outputs
      **********/
 
-    new CfnOutput(this, 'ApiGatewayUrl', { value: restapi.url });
-
     this.restApiUrl = restapi.url;
   }
 }

@@ -7,6 +7,8 @@ import { Grid } from '@mui/material';
 const Chat: React.FC = () => {
   const [isLoadingMessage, setLoadingMessage] = useState<boolean>(false);
 
+  const [connected, setConnected] = useState(false);
+
   const [sessionId, setSessionId] = React.useState<string | null>(null);
   const [conversation, setConversation] = React.useState<Conversation[] | undefined>();
   const [prompt, setPrompt] = useState('');
@@ -20,11 +22,13 @@ const Chat: React.FC = () => {
     const client = new WebSocket(`${import.meta.env.VITE_API_WEBSOCKET_ENDPOINT}?idToken=${idToken}`);
 
     client.onopen = (e) => {
+      setConnected(true);
       console.log('WebSocket connection established.');
     };
 
     client.onerror = (e: any) => {
       console.error(e);
+      setConnected(false);
 
       setTimeout(async () => {
         console.log('Error. Reconnecting...');
@@ -39,6 +43,7 @@ const Chat: React.FC = () => {
           // await initializeClient();
         });
       } else {
+        setConnected(false);
         console.log('WebSocket connection closed.');
       }
     };
@@ -53,7 +58,7 @@ const Chat: React.FC = () => {
         setPrompt('');
         setSessionId(event.sessionId);
 
-        setConversation((conversation) => [...(conversation || []), event.messages]);
+        setConversation((conversation) => [...(conversation || []), event.data]);
 
         setLoadingMessage(false);
       }
@@ -107,6 +112,7 @@ const Chat: React.FC = () => {
       <ChatMessages
         prompt={prompt}
         conversation={conversation}
+        connected={connected}
         isLoadingMessage={isLoadingMessage}
         submitMessage={(e: any) => submitMessage(e)}
         handleKeyPress={handleKeyPress}

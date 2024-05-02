@@ -56,19 +56,8 @@ def handler(event, context):
                 #print("🟡 Full Trace", json.dumps(event['trace']))
                 trace = event['trace']['trace']
                 sessionId = event['trace']['sessionId']
-                phase = 'preProcessingTrace'
-                if 'orchestrationTrace' in trace:
-                    phase = 'orchestrationTrace'
-                elif 'postProcessingTrace' in trace:
-                    phase = 'postProcessingTrace'
 
                 print("👉 ", json.dumps(trace))
-
-                # Reduce payload size
-                # if phase is 'preProcessingTrace' and 'inferenceConfiguration' in trace['preProcessingTrace']['modelInvocationInput']:
-                #     continue
-                # if phase != 'orchestrationTrace':
-                #     continue
 
                 if not debug_event:
                     debug_event = [trace]
@@ -89,8 +78,8 @@ def handler(event, context):
     except Exception as e:
         raise Exception("Unexpected event", e)
 
-    convo = {'message': agent_answer, 'type': 'agent', 'traces': debug_event}
-    print("🚀 Conversation", convo)
+    conversation = {'message': agent_answer, 'type': 'agent', 'traces': debug_event}
+    print("🚀 Conversation", conversation)
 
     # Send message to all connected clients
     for connectionId in connectionIds:
@@ -99,8 +88,7 @@ def handler(event, context):
 
             api_gateway_management_api.post_to_connection(
                 ConnectionId=connectionId["connectionId"]["S"],
-                Data=json.dumps({"messages": convo, 'sessionId': sessionId})
-                #Data=json.dumps({"messages": conversation["messages"], 'sessionId': sessionId})
+                Data=json.dumps({"data": conversation, 'sessionId': sessionId})
             )
         except Exception as e:
              logger.error(f"Error sending message to connectionId {connectionId}: {e}")
