@@ -75,7 +75,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
                       marginBottom: 2,
                     }}
                   >
-                    {message.message}
+                    {message.message.replace('<<REDACTED>>', '').replace('</<REDACTED>>', '')}
                     <br />
                     <Button sx={{ color: 'white' }} disableRipple onClick={toggleDrawer(i, true)}>
                       Toggle Trace

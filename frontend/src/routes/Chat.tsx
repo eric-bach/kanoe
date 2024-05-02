@@ -24,10 +24,10 @@ const Chat: React.FC = () => {
     };
 
     client.onerror = (e: any) => {
-      //setStatus("error (reconnecting...)");
       console.error(e);
 
       setTimeout(async () => {
+        console.log('Error. Reconnecting...');
         await initializeClient();
       });
     };
@@ -35,7 +35,8 @@ const Chat: React.FC = () => {
     client.onclose = () => {
       if (!closed) {
         setTimeout(async () => {
-          await initializeClient();
+          // console.log('Timeout. Reconnecting...');
+          // await initializeClient();
         });
       } else {
         console.log('WebSocket connection closed.');
@@ -46,12 +47,12 @@ const Chat: React.FC = () => {
     client.onmessage = async (message: any) => {
       const event = JSON.parse(message.data);
 
-      console.log('Current conversation', conversation);
       console.log('Received message', event);
 
       if (event.message !== 'Endpoint request timed out') {
         setPrompt('');
         setSessionId(event.sessionId);
+
         setConversation((conversation) => [...(conversation || []), event.messages]);
 
         setLoadingMessage(false);
