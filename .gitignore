@@ -10,3 +10,5 @@ cdk.out
 .env
 .env.development
 .env.prod
+
+dist/

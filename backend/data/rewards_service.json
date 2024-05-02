@@ -3,13 +3,13 @@
   "info": {
     "title": "Reward Dollars Services API",
     "version": "1.0.0",
-    "description": "Reward Dollars service to get a member's reward dollar balance"
+    "description": "Reward Dollars APIs to get a member's available reward dollar balance that can be applied towards purchases"
   },
   "paths": {
     "/rewards/balance/{memberId}": {
       "get": {
-        "summary": "Sub task to get a member's reward dollar balance",
-        "description": "Once we have the member Id, we can get the reward dollar balance for the member",
+        "summary": "Get a member's available reward dollar balance that can be applied towards purchases",
+        "description": "Using the member ID provided, returns the avilable reward dollar balance for the member",
         "operationId": "getRewardBalance",
         "parameters": [
           {
@@ -24,7 +24,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get member reward dollar balance",
+            "description": "Get member's available reward dollar balance",
             "content": {
               "application/json": {
                 "schema": {
@@ -36,7 +36,7 @@
                     },
                     "balance": {
                       "type": "decimal",
-                      "description": "Member reward dollar balance"
+                      "description": "Available reward dollar balance"
                     }
                   }
                 }

@@ -1,21 +1,21 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Member Services Bot API",
+    "title": "Member Services API",
     "version": "1.0.0",
     "description": "Member service APIs for getting member information"
   },
   "paths": {
     "/member/{memberNumber}": {
       "get": {
-        "summary": "Get member information",
-        "description": "Based on provided membership number, returns member information like member ID, first name, last name, address, and a credit card if available",
+        "summary": "Get member information based on a 16-digit membership number",
+        "description": "Using the 16-digit membership number provided, returns member information such as the member ID, first name, last name, address, city, and any saved credit cards that can be used for purchases",
         "operationId": "getMemberInfo",
         "parameters": [
           {
             "name": "memberNumber",
             "in": "path",
-            "description": "Member Number",
+            "description": "A 16-digit membership number starting with 620272",
             "required": true,
             "schema": {
               "type": "string"
@@ -54,7 +54,7 @@
                       },
                       "city": {
                         "type": "string",
-                        "description": "Member city"
+                        "description": "Member city and default airport departure city"
                       },
                       "province": {
                         "type": "string",

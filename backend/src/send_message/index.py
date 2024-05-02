@@ -67,6 +67,12 @@ def handler(event, context):
                 print("👉 Phase", phase)
                 print("👉 Trace", json.dumps(trace))
 
+                # Reduce payload size
+                # if phase is 'preProcessingTrace' and 'inferenceConfiguration' in trace['preProcessingTrace']['modelInvocationInput']:
+                #     continue
+                # if phase != 'orchestrationTrace':
+                #     continue
+
                 if not debug_event:
                     debug_event = [trace]
                 else:
