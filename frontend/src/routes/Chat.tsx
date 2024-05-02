@@ -45,13 +45,17 @@ const Chat: React.FC = () => {
     // https://stackoverflow.com/questions/60588745/websocket-in-reactjs-is-setting-state-with-empty-array
     client.onmessage = async (message: any) => {
       const event = JSON.parse(message.data);
+
+      console.log('Current conversation', conversation);
       console.log('Received message', event);
 
-      setPrompt('');
-      setSessionId(event.sessionId);
-      setConversation((conversation) => [...(conversation || []), event.messages]);
+      if (event.message !== 'Endpoint request timed out') {
+        setPrompt('');
+        setSessionId(event.sessionId);
+        setConversation((conversation) => [...(conversation || []), event.messages]);
 
-      setLoadingMessage(false);
+        setLoadingMessage(false);
+      }
     };
 
     setClient(client);
@@ -74,6 +78,8 @@ const Chat: React.FC = () => {
   const submitMessage = async (event: any) => {
     setLoadingMessage(true);
 
+    setConversation((conversation) => [...(conversation || []), { type: 'user', message: event.target.value, traces: [] }]);
+
     const user = await Auth.currentAuthenticatedUser();
 
     if (event.key !== 'Enter') {
@@ -89,6 +95,8 @@ const Chat: React.FC = () => {
     };
 
     console.log('Sending message', data);
+
+    setPrompt('Thinking...');
 
     client?.send(JSON.stringify(data));
   };
