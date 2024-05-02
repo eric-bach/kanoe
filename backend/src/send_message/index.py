@@ -18,19 +18,11 @@ logger = Logger()
 def handler(event, context):
     event_body = json.loads(event["body"])
     prompt = event_body["prompt"]
-    conversation = event_body["conversation"]
+    sessionId = event_body["sessionId"]
     
     # Initialize conversation
-    currentSessionId = conversation.get('sessionId')
-    if not currentSessionId:
-        currentSessionId = str(uuid.uuid4())
-
-    print("Received conversation:", conversation)
-    if not conversation["messages"]:
-        conversation["messages"] = [{'type': 'human', 'content': prompt, 'debug': {}}]
-    else:
-        conversation["messages"].append({'type': 'human', 'content': prompt, 'debug': {}})
-    print("Initialized conversation:", conversation)
+    if not sessionId:
+        sessionId = str(uuid.uuid4())
 
     paginator = ddb_client.get_paginator("scan")
     connectionIds = []
@@ -50,7 +42,7 @@ def handler(event, context):
         inputText=prompt,
         agentId=AGENT_ID,
         agentAliasId=AGENT_ALIAS_ID,
-        sessionId=currentSessionId,
+        sessionId=sessionId,
         enableTrace=True
     )
     logger.info(response)
@@ -95,18 +87,17 @@ def handler(event, context):
         raise Exception("Unexpected event", e)
 
     convo = {'content': agent_answer, 'type': 'agent', 'debug': debug_event}
-    conversation["messages"].append(convo)
     print("🚀 Conversation", convo)
 
     # Send message to all connected clients
-    print("Conversation Final", conversation)
     for connectionId in connectionIds:
         try:
             logger.info("Sending message to connectionId: " + connectionId["connectionId"]["S"])
 
             api_gateway_management_api.post_to_connection(
                 ConnectionId=connectionId["connectionId"]["S"],
-                Data=json.dumps({"messages": conversation["messages"], 'sessionId': sessionId})
+                Data=json.dumps({"messages": convo, 'sessionId': sessionId})
+                #Data=json.dumps({"messages": conversation["messages"], 'sessionId': sessionId})
             )
         except Exception as e:
              logger.error(f"Error sending message to connectionId {connectionId}: {e}")

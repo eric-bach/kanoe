@@ -13,10 +13,7 @@ export interface Document {
 }
 
 export interface Conversation {
-  sessionId: string;
-  messages: {
-    type: string;
-    content: string;
-    debug: any;
-  }[];
+  type: string;
+  message: string;
+  traces: any;
 }
