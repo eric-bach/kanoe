@@ -28,6 +28,7 @@ import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { WebSocketApi, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
 import { WebSocketLambdaAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import { bedrock } from '@cdklabs/generative-ai-cdk-constructs';
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -169,61 +170,104 @@ export class TravelAgentStack extends Stack {
       Bedrock 
      **********/
 
-    // Method 1: Custom Resources - https://github.com/PieterjanCriel/bedrock-agents-cdk
-    const agentRole = new Role(this, 'AgentIamRole', {
-      roleName: 'AmazonBedrockExecutionRoleForAgents_' + 'RetailAgent',
-      assumedBy: new ServicePrincipal('bedrock.amazonaws.com'),
-      description: 'Agent role created by CDK.',
-    });
-    agentRole.addToPolicy(
-      new PolicyStatement({
-        actions: ['*'],
-        resources: ['arn:aws:bedrock:*'],
-      })
-    );
-    bucket.grantRead(agentRole);
+    // Method 2: AWS Samples Generative AI Constructs - https://github.com/awslabs/generative-ai-cdk-constructs
 
-    const bedrockAgentProps: BedrockAgentProps = {
-      bedrockRegion: 'us-east-1',
-      agentName: 'TravelAgent',
+    // NOTE: This will cost $700/month to spin up OpenSearch Service
+    // const kb = new bedrock.KnowledgeBase(this, 'KnowledgeBase', {
+    //   embeddingsModel: bedrock.BedrockFoundationModel.TITAN_EMBED_TEXT_V1,
+    //   instruction: 'Search for the latitude and longitude of the city provided in the prompt',
+    // });
+
+    const agent = new bedrock.Agent(this, 'BedrockAgent', {
+      name: 'TravelAgent',
+      foundationModel: bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_V2_1,
       instruction:
         'You are an agent that helps members search for a flight. Members with a saved credit card and/or reward dollars can use it \
-        to pay for part of all of the flight so ensure you retrieve member and reward dollar balances with their membership number \
-        or member ID. If they did not specify a departure city, ask if they are departing from same the city you retrieved from the \
-        member information. Once you confirm, check for available flights matching the destination city. For each flight available, \
-        let the member know the flight ID, airline, departure and arrival date/time, and price. If the member would like to book the \
-        flight, use the previously saved credit card to book the flight for the member. If reward dollars were used to pay for any \
-        of the flight, let them know the remaining cost of the flight if they were applied, and how many reward dollars would remain \
-        if they applied them.',
-      foundationModel: 'anthropic.claude-v2:1',
-      agentResourceRoleArn: agentRole.roleArn,
-      idleSessionTTLInSeconds: 600,
-      actionGroups: [
-        {
-          actionGroupName: 'MemberActionGroup',
-          actionGroupExecutor: memberAgentFunction.functionArn,
-          s3BucketName: bucket.bucketName,
-          s3ObjectKey: 'member_service.json',
-          description: 'Member Service Action Group',
-        },
-        {
-          actionGroupName: 'RewardsActionGroup',
-          actionGroupExecutor: rewardsAgentFunction.functionArn,
-          s3BucketName: bucket.bucketName,
-          s3ObjectKey: 'rewards_service.json',
-          description: 'Rewards Service Action Group',
-        },
-        {
-          actionGroupName: 'TravelActionGroup',
-          actionGroupExecutor: travelAgentFunction.functionArn,
-          s3BucketName: bucket.bucketName,
-          s3ObjectKey: 'travel_service.json',
-          description: 'Travel Service Action Group',
-        },
-      ],
-    };
+        to pay for part of all of the flight if they decide to use it. Before searching for available flights, look up the members \
+        information. Then check for available flights matching the destination city. Let the member know the options for each available \
+        flight including the flight ID, airline, departure and arrival date/time, and price. If the member would like to book the \
+        flight, confirm if they would like to use the saved credit card to book the flight for the member and if they would like to \
+        use any of their available reward dollars to pay for any of the flkight.  Then let them know the remaining cost of the flight \
+        if they were applied, and how many reward dollars would remain.',
+      idleSessionTTL: Duration.minutes(30),
+      // knowledgeBases: [kb],
+      shouldPrepareAgent: true,
+      // TODO: Investigate advanced prompt templates
+      // promptOverrideConfiguration: {
+      //   promptConfigurations: [
+      //     {
+      //       promptType: bedrock.PromptType.ORCHESTRATION,
+      //       promptState: bedrock.PromptState.ENABLED,
+      //       promptCreationMode: bedrock.PromptCreationMode.OVERRIDDEN,
+      //       basePromptTemplate: orchestration,
+      //       inferenceConfiguration: {
+      //         temperature: 0.0,
+      //         topP: 1,
+      //         topK: 250,
+      //         maximumLength: 2048,
+      //         stopSequences: ['</invoke>', '</answer>', '</error>'],
+      //       },
+      //     },
+      //   ],
+      // },
+    });
+    agent.role?.addManagedPolicy({ managedPolicyArn: 'arn:aws:iam::aws:policy/AmazonS3FullAccess' });
+    agent.role?.addManagedPolicy({ managedPolicyArn: 'arn:aws:iam::aws:policy/AWSLambda_FullAccess' });
+    agent.role?.addToPolicy(
+      new PolicyStatement({
+        actions: ['bedrock:*'],
+        resources: ['*'],
+      })
+    );
 
-    const agent = new BedrockAgent(this, 'BedrockAgent', bedrockAgentProps);
+    const memberAgentGroup = new bedrock.AgentActionGroup(this, 'MemberAgentGroup', {
+      actionGroupName: 'MemberActionGroup',
+      agent,
+      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'member_service.json'),
+      actionGroupState: 'ENABLED',
+      actionGroupExecutor: memberAgentFunction,
+      shouldPrepareAgent: true,
+    });
+
+    const rewardsAgentGroup = new bedrock.AgentActionGroup(this, 'RewardsAgentGroup', {
+      actionGroupName: 'RewardsAgentGroup',
+      agent,
+      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'rewards_service.json'),
+      actionGroupState: 'ENABLED',
+      actionGroupExecutor: rewardsAgentFunction,
+      shouldPrepareAgent: true,
+    });
+
+    const travelAgentGroup = new bedrock.AgentActionGroup(this, 'TravelAgentGroup', {
+      actionGroupName: 'TravelAgentGroup',
+      agent,
+      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'travel_service.json'),
+      actionGroupState: 'ENABLED',
+      actionGroupExecutor: travelAgentFunction,
+      shouldPrepareAgent: true,
+    });
+
+    // Ensure bucket deployment completes before agent action group so the files are available
+    memberAgentGroup.node.addDependency(bucketDeployment);
+    rewardsAgentGroup.node.addDependency(bucketDeployment);
+    travelAgentGroup.node.addDependency(bucketDeployment);
+
+    // Grant Bedrock Agent permissions to invoke the Lambda function
+    memberAgentFunction.addPermission('InvokeFunction', {
+      principal: new ServicePrincipal('bedrock.amazonaws.com'),
+      action: 'lambda:InvokeFunction',
+      sourceArn: agent.agentArn,
+    });
+    rewardsAgentFunction.addPermission('InvokeFunction', {
+      principal: new ServicePrincipal('bedrock.amazonaws.com'),
+      action: 'lambda:InvokeFunction',
+      sourceArn: agent.agentArn,
+    });
+    travelAgentFunction.addPermission('InvokeFunction', {
+      principal: new ServicePrincipal('bedrock.amazonaws.com'),
+      action: 'lambda:InvokeFunction',
+      sourceArn: agent.agentArn,
+    });
 
     /**********
       Websocket Functions
@@ -274,18 +318,16 @@ export class TravelAgentStack extends Stack {
       layers: [powertoolsLayer],
     });
 
-    // TODO Change this each time agent is created
-    const AGENT_ID = 'Y0C25OEQR3'; //Y0C25OEQR3, UANIRJK8QF
     const sendMessage = new PythonFunction(this, 'SendMessage', {
       functionName: `${props.appName}-SendMessage-${props.envName}`,
       entry: 'src/send_message',
       runtime: Runtime.PYTHON_3_10,
       architecture: Architecture.ARM_64,
-      memorySize: 2048,
-      timeout: Duration.seconds(60),
+      memorySize: 3072,
+      timeout: Duration.seconds(120),
       environment: {
         TABLE_NAME: table.tableName,
-        AGENT_ID: AGENT_ID,
+        AGENT_ID: agent.agentId,
         AGENT_ALIAS_ID: 'TSTALIASID',
       },
       retryAttempts: 0,
@@ -295,7 +337,7 @@ export class TravelAgentStack extends Stack {
     sendMessage.addToRolePolicy(
       new PolicyStatement({
         actions: ['bedrock:InvokeAgent'],
-        resources: [`arn:aws:bedrock:*:*:agent-alias/${AGENT_ID}/TSTALIASID`],
+        resources: [`arn:aws:bedrock:*:*:agent-alias/${agent.agentId}/TSTALIASID`],
       })
     );
 
