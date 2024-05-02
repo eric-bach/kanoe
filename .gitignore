@@ -12,3 +12,5 @@ cdk.out
 .env.prod
 
 dist/
+
+~*.pptx
