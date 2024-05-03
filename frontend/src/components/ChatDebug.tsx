@@ -14,7 +14,7 @@ const ChatDebug: React.FC<ChatDebugProps> = ({ debug }) => {
       </Typography>
 
       {debug.map((trace: any, i: any) => (
-        <ReactJson src={trace} />
+        <ReactJson key={i} src={trace} />
       ))}
     </Box>
   );

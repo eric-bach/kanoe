@@ -18,20 +18,10 @@ logger = Logger()
 def handler(event, context):
     event_body = json.loads(event["body"])
     prompt = event_body["prompt"]
-    conversation = event_body["conversation"]
+    sessionId = event_body.get("sessionId")
+    if not sessionId:
+        sessionId = str(uuid.uuid4())
     
-    # Initialize conversation
-    currentSessionId = conversation.get('sessionId')
-    if not currentSessionId:
-        currentSessionId = str(uuid.uuid4())
-
-    print("Received conversation:", conversation)
-    if not conversation["messages"]:
-        conversation["messages"] = [{'type': 'human', 'content': prompt, 'debug': {}}]
-    else:
-        conversation["messages"].append({'type': 'human', 'content': prompt, 'debug': {}})
-    print("Initialized conversation:", conversation)
-
     paginator = ddb_client.get_paginator("scan")
     connectionIds = []
 
@@ -50,13 +40,14 @@ def handler(event, context):
         inputText=prompt,
         agentId=AGENT_ID,
         agentAliasId=AGENT_ALIAS_ID,
-        sessionId=currentSessionId,
+        sessionId=sessionId,
         enableTrace=True
     )
     logger.info(response)
 
     event_stream = response['completion']
     try:
+        print("👉 Session", sessionId)
         debug_event = []
         for event in event_stream:
             print("Event", event)
@@ -65,21 +56,8 @@ def handler(event, context):
                 #print("🟡 Full Trace", json.dumps(event['trace']))
                 trace = event['trace']['trace']
                 sessionId = event['trace']['sessionId']
-                phase = 'preProcessingTrace'
-                if 'orchestrationTrace' in trace:
-                    phase = 'orchestrationTrace'
-                elif 'postProcessingTrace' in trace:
-                    phase = 'postProcessingTrace'
 
-                print("👉 Session", sessionId)
-                print("👉 Phase", phase)
-                print("👉 Trace", json.dumps(trace))
-
-                # Reduce payload size
-                # if phase is 'preProcessingTrace' and 'inferenceConfiguration' in trace['preProcessingTrace']['modelInvocationInput']:
-                #     continue
-                # if phase != 'orchestrationTrace':
-                #     continue
+                print("👉 ", json.dumps(trace))
 
                 if not debug_event:
                     debug_event = [trace]
@@ -100,19 +78,17 @@ def handler(event, context):
     except Exception as e:
         raise Exception("Unexpected event", e)
 
-    convo = {'content': agent_answer, 'type': 'agent', 'debug': debug_event}
-    conversation["messages"].append(convo)
-    print("🚀 Conversation", convo)
+    conversation = {'message': agent_answer, 'type': 'agent', 'traces': debug_event}
+    print("🚀 Conversation", conversation)
 
     # Send message to all connected clients
-    print("Conversation Final", conversation)
     for connectionId in connectionIds:
         try:
             logger.info("Sending message to connectionId: " + connectionId["connectionId"]["S"])
 
             api_gateway_management_api.post_to_connection(
                 ConnectionId=connectionId["connectionId"]["S"],
-                Data=json.dumps({"messages": conversation["messages"], 'sessionId': sessionId})
+                Data=json.dumps({"data": conversation, 'sessionId': sessionId})
             )
         except Exception as e:
              logger.error(f"Error sending message to connectionId {connectionId}: {e}")

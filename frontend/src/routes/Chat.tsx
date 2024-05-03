@@ -7,7 +7,10 @@ import { Grid } from '@mui/material';
 const Chat: React.FC = () => {
   const [isLoadingMessage, setLoadingMessage] = useState<boolean>(false);
 
-  const [conversation, setConversation] = React.useState<Conversation>({ messages: [], sessionId: '' });
+  const [connected, setConnected] = useState(false);
+
+  const [sessionId, setSessionId] = React.useState<string | null>(null);
+  const [conversation, setConversation] = React.useState<Conversation[] | undefined>();
   const [prompt, setPrompt] = useState('');
 
   const [client, setClient] = useState<WebSocket>();
@@ -19,14 +22,16 @@ const Chat: React.FC = () => {
     const client = new WebSocket(`${import.meta.env.VITE_API_WEBSOCKET_ENDPOINT}?idToken=${idToken}`);
 
     client.onopen = (e) => {
+      setConnected(true);
       console.log('WebSocket connection established.');
     };
 
     client.onerror = (e: any) => {
-      //setStatus("error (reconnecting...)");
       console.error(e);
+      setConnected(false);
 
       setTimeout(async () => {
+        console.log('Error. Reconnecting...');
         await initializeClient();
       });
     };
@@ -34,9 +39,11 @@ const Chat: React.FC = () => {
     client.onclose = () => {
       if (!closed) {
         setTimeout(async () => {
-          await initializeClient();
+          // console.log('Timeout. Reconnecting...');
+          // await initializeClient();
         });
       } else {
+        setConnected(false);
         console.log('WebSocket connection closed.');
       }
     };
@@ -44,12 +51,17 @@ const Chat: React.FC = () => {
     // https://stackoverflow.com/questions/60588745/websocket-in-reactjs-is-setting-state-with-empty-array
     client.onmessage = async (message: any) => {
       const event = JSON.parse(message.data);
+
       console.log('Received message', event);
 
-      setPrompt('');
-      setConversation({ messages: [...event.messages], sessionId: event.sessionId });
+      if (event.message !== 'Endpoint request timed out') {
+        setPrompt('');
+        setSessionId(event.sessionId);
 
-      setLoadingMessage(false);
+        setConversation((conversation) => [...(conversation || []), event.data]);
+
+        setLoadingMessage(false);
+      }
     };
 
     setClient(client);
@@ -72,7 +84,7 @@ const Chat: React.FC = () => {
   const submitMessage = async (event: any) => {
     setLoadingMessage(true);
 
-    console.log('Submitting ', prompt);
+    setConversation((conversation) => [...(conversation || []), { type: 'user', message: event.target.value, traces: [] }]);
 
     const user = await Auth.currentAuthenticatedUser();
 
@@ -80,15 +92,19 @@ const Chat: React.FC = () => {
       return;
     }
 
-    client?.send(
-      JSON.stringify({
-        action: 'SendMessage',
-        userId: user.attributes.sub,
-        prompt: prompt,
-        conversation: conversation,
-        token: (await Auth.currentSession()).getIdToken().getJwtToken(),
-      })
-    );
+    const data = {
+      action: 'SendMessage',
+      userId: user.attributes.sub,
+      sessionId: sessionId,
+      prompt: prompt,
+      token: (await Auth.currentSession()).getIdToken().getJwtToken(),
+    };
+
+    console.log('Sending message', data);
+
+    setPrompt('Thinking...');
+
+    client?.send(JSON.stringify(data));
   };
 
   return (
@@ -96,6 +112,7 @@ const Chat: React.FC = () => {
       <ChatMessages
         prompt={prompt}
         conversation={conversation}
+        connected={connected}
         isLoadingMessage={isLoadingMessage}
         submitMessage={(e: any) => submitMessage(e)}
         handleKeyPress={handleKeyPress}

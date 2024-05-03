@@ -180,7 +180,7 @@ export class TravelAgentStack extends Stack {
 
     const agent = new bedrock.Agent(this, 'BedrockAgent', {
       name: 'TravelAgent',
-      foundationModel: bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_V2_1,
+      foundationModel: bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_SONNET_V1_0,
       instruction:
         'You are an agent that helps members search for a flight. Members with a saved credit card and/or reward dollars can use it \
         to pay for part of all of the flight if they decide to use it. Before searching for available flights, look up the members \
@@ -492,6 +492,10 @@ export class TravelAgentStack extends Stack {
 
     new CfnOutput(this, 'UserPoolClientId', {
       value: userPoolClient.userPoolClientId,
+    });
+
+    new CfnOutput(this, 'WebsocketUrl', {
+      value: webSocketApi.apiEndpoint,
     });
 
     new CfnOutput(this, 'CloudFrontDistributionName', {

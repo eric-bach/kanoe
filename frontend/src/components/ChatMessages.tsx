@@ -1,36 +1,29 @@
 import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
 import CircularProgress from '@mui/material/CircularProgress';
-import {
-  Box,
-  Button,
-  Drawer,
-  TextField,
-  Grid,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Divider,
-  Typography,
-} from '@mui/material';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
+import { Box, Button, Drawer, TextField, Grid, IconButton, List, Typography, Chip } from '@mui/material';
 import { Conversation } from '../common/types';
 import React from 'react';
 import ChatDebug from './ChatDebug';
 
 interface ChatMessagesProps {
   prompt: string;
-  conversation: Conversation | undefined;
+  connected: boolean;
+  conversation: Conversation[] | undefined;
   isLoadingMessage: boolean;
   handlePromptChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleKeyPress: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   submitMessage: (event: any) => Promise<void>;
 }
 
-const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoadingMessage, submitMessage, handlePromptChange, handleKeyPress }) => {
+const ChatMessages: React.FC<ChatMessagesProps> = ({
+  prompt,
+  connected,
+  conversation,
+  isLoadingMessage,
+  submitMessage,
+  handlePromptChange,
+  handleKeyPress,
+}) => {
   const [showDebug, setShowDebug] = React.useState<number>(0);
   const [open, setOpen] = React.useState<boolean>(false);
   const [debug, setDebug] = React.useState<any[]>([]);
@@ -41,7 +34,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
       setDebug([]);
     } else {
       setShowDebug(i);
-      setDebug(conversation?.messages[i].debug);
+      setDebug(conversation ? conversation[i]?.traces : []);
     }
 
     setOpen(open);
@@ -53,10 +46,15 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
       <Grid item={true} md={8} sx={{ pr: '30px' }}>
         <Typography variant='h5' sx={{ pb: '15px' }}>
           Conversation
+          {connected ? (
+            <Chip label='Connected' color='success' sx={{ ml: '0.5em' }} />
+          ) : (
+            <Chip label='Disconnected' color='error' variant='outlined' sx={{ ml: '0.5em' }} />
+          )}
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '5px' }}>
           <List>
-            {conversation?.messages.map((message, i) => (
+            {conversation?.map((message, i) => (
               <div key={i}>
                 {message.type === 'agent' ? (
                   <Typography
@@ -75,7 +73,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
                       marginBottom: 2,
                     }}
                   >
-                    {message.content}
+                    {message.message.replace('<<REDACTED>>', '').replace('</<REDACTED>>', '')}
                     <br />
                     <Button sx={{ color: 'white' }} disableRipple onClick={toggleDrawer(i, true)}>
                       Toggle Trace
@@ -96,7 +94,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
                       marginBottom: 2,
                     }}
                   >
-                    {message.content}
+                    {message.message}
                   </Typography>
                 )}
               </div>
@@ -105,7 +103,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, conversation, isLoa
           </List>
           <Box display='flex' alignItems='center'>
             <TextField
-              disabled={isLoadingMessage}
+              disabled={isLoadingMessage || !connected}
               type='text'
               id='prompt'
               value={prompt}
