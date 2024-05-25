@@ -341,6 +341,34 @@ export class TravelAgentStack extends Stack {
       })
     );
 
+    const setAgent = new PythonFunction(this, 'SetAgent', {
+      functionName: `${props.appName}-SetAgent-${props.envName}`,
+      entry: 'src/set_agent',
+      runtime: Runtime.PYTHON_3_10,
+      architecture: Architecture.ARM_64,
+      memorySize: 1024,
+      timeout: Duration.seconds(30),
+      environment: {
+        TABLE_NAME: table.tableName,
+        AGENT_ID: agent.agentId,
+      },
+      retryAttempts: 0,
+      layers: [powertoolsLayer],
+    });
+    table.grantReadData(setAgent);
+    setAgent.addToRolePolicy(
+      new PolicyStatement({
+        actions: ['bedrock:GetAgent', 'bedrock:UpdateAgent', 'bedrock:PrepareAgent'],
+        resources: [`arn:aws:bedrock:*:*:agent/${agent.agentId}`],
+      })
+    );
+    setAgent.addToRolePolicy(
+      new PolicyStatement({
+        actions: ['iam:PassRole'],
+        resources: [agent.role!.roleArn],
+      })
+    );
+
     //**********
     // APIs
     //**********
@@ -367,9 +395,24 @@ export class TravelAgentStack extends Stack {
     webSocketApi.addRoute('SendMessage', {
       integration: new WebSocketLambdaIntegration('SendMessageIntegration', sendMessage),
     });
+    webSocketApi.addRoute('SetAgent', {
+      integration: new WebSocketLambdaIntegration('SetAgentIntegration', setAgent),
+    });
 
     // Add permissions to websocket function to manage websocket connections
     sendMessage.addToRolePolicy(
+      new PolicyStatement({
+        actions: ['execute-api:ManageConnections'],
+        resources: [
+          this.formatArn({
+            service: 'execute-api',
+            resourceName: `${apiStage.stageName}/POST/*`,
+            resource: webSocketApi.apiId,
+          }),
+        ],
+      })
+    );
+    setAgent.addToRolePolicy(
       new PolicyStatement({
         actions: ['execute-api:ManageConnections'],
         resources: [
