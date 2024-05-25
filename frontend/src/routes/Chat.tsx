@@ -4,10 +4,15 @@ import ChatMessages from '../components/ChatMessages';
 import { Conversation } from '../common/types';
 import { Chip, Grid, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
 
-const Chat: React.FC = () => {
-  const [isLoadingMessage, setLoadingMessage] = useState<boolean>(false);
+export enum STATUS {
+  DISCONNECTED,
+  THINKING,
+  PREPARING,
+  READY,
+}
 
-  const [connected, setConnected] = useState(false);
+const Chat: React.FC = () => {
+  const [status, setStatus] = useState<STATUS>(STATUS.DISCONNECTED);
 
   const [sessionId, setSessionId] = React.useState<string | null>(null);
   const [conversation, setConversation] = React.useState<Conversation[] | undefined>();
@@ -23,13 +28,13 @@ const Chat: React.FC = () => {
     const client = new WebSocket(`${import.meta.env.VITE_API_WEBSOCKET_ENDPOINT}?idToken=${idToken}`);
 
     client.onopen = (e) => {
-      setConnected(true);
+      setStatus(STATUS.READY);
       console.log('WebSocket connection established.');
     };
 
     client.onerror = (e: any) => {
       console.error(e);
-      setConnected(false);
+      setStatus(STATUS.DISCONNECTED);
 
       setTimeout(async () => {
         console.log('Error. Reconnecting...');
@@ -44,7 +49,7 @@ const Chat: React.FC = () => {
           // await initializeClient();
         });
       } else {
-        setConnected(false);
+        setStatus(STATUS.DISCONNECTED);
         console.log('WebSocket connection closed.');
       }
     };
@@ -57,18 +62,15 @@ const Chat: React.FC = () => {
 
       if (event.message !== 'Endpoint request timed out') {
         if (event.message == 'Internal server error') {
-        } else if (event.message == 'updated agent') {
-          // TODO handle agent update
-
-          console.log('agent updated');
-        } else {
+          // TODO Handle error
+          return;
+        } else if (event.message !== 'updated agent') {
           setSessionId(event.sessionId);
-
           setConversation((conversation) => [...(conversation || []), event.data]);
         }
 
         setPrompt('');
-        setLoadingMessage(false);
+        setStatus(STATUS.READY);
       }
     };
 
@@ -97,7 +99,7 @@ const Chat: React.FC = () => {
   };
 
   const submitMessage = async (event: any) => {
-    setLoadingMessage(true);
+    setStatus(STATUS.THINKING);
 
     setConversation((conversation) => [...(conversation || []), { type: 'user', message: event.target.value, traces: [] }]);
 
@@ -121,7 +123,7 @@ const Chat: React.FC = () => {
   };
 
   const setAgent = async (fm: string) => {
-    setLoadingMessage(true);
+    setStatus(STATUS.PREPARING);
 
     setConversation(undefined);
     setPrompt('');
@@ -144,10 +146,15 @@ const Chat: React.FC = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <Typography variant='h5' sx={{ pb: '15px', display: 'flex' }}>
             Conversation
-            {connected ? (
-              <Chip label='Connected' color='success' sx={{ ml: '0.5em' }} />
+            {status === STATUS.READY ? (
+              <Chip label='Ready' color='success' sx={{ ml: '0.5em' }} />
             ) : (
-              <Chip label='Disconnected' color='error' variant='outlined' sx={{ ml: '0.5em' }} />
+              <Chip
+                label={STATUS[status].charAt(0).toUpperCase() + STATUS[status].slice(1).toLowerCase()}
+                color='error'
+                variant='outlined'
+                sx={{ ml: '0.5em' }}
+              />
             )}
           </Typography>
           <Select value={foundationModel} onChange={(e) => handleAgentChange(e)} sx={{ mt: '-0.5em', ml: 'auto' }}>
@@ -159,8 +166,7 @@ const Chat: React.FC = () => {
         <ChatMessages
           prompt={prompt}
           conversation={conversation}
-          connected={connected}
-          isLoadingMessage={isLoadingMessage}
+          status={status}
           submitMessage={(e: any) => submitMessage(e)}
           handleKeyPress={handleKeyPress}
           handlePromptChange={handlePromptChange}
