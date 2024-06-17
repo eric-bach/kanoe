@@ -11,7 +11,7 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import MenuIcon from '@mui/icons-material/Menu';
-import ChatIcon from '@mui/icons-material/Chat';
+import AirlinesIcon from '@mui/icons-material/Airlines';
 import { useNavigate } from 'react-router-dom';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 
@@ -46,10 +46,10 @@ const Navigation: React.FC = () => {
   };
 
   return (
-    <AppBar position='static' sx={{ marginTop: '-6em' }}>
+    <AppBar position='static' sx={{ marginTop: '-6em', color: '#ff690f', backgroundColor: '#fff' }}>
       <Container maxWidth='xl'>
         <Toolbar disableGutters>
-          <ChatIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
+          <AirlinesIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
           <Typography
             variant='h6'
             noWrap
@@ -64,7 +64,7 @@ const Navigation: React.FC = () => {
               textDecoration: 'none',
             }}
           >
-            Travel Agent
+            KANOE
           </Typography>
 
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
@@ -103,7 +103,7 @@ const Navigation: React.FC = () => {
               ))}
             </Menu>
           </Box>
-          <ChatIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
+          <AirlinesIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
           <Typography
             variant='h5'
             noWrap
@@ -120,7 +120,7 @@ const Navigation: React.FC = () => {
               textDecoration: 'none',
             }}
           >
-            Travel Agent
+            KANOE
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {pages.map((page) => (
@@ -133,7 +133,7 @@ const Navigation: React.FC = () => {
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title='Open settings'>
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar />
+                <Avatar sx={{ backgroundColor: '#ff690f' }} />
               </IconButton>
             </Tooltip>
             <Menu
