@@ -147,12 +147,12 @@ const Chat: React.FC = () => {
           <Typography variant='h5' sx={{ pb: '15px', display: 'flex' }}>
             Conversation
             {status === STATUS.READY ? (
-              <Chip label='Ready' sx={{ color: 'white', backgroundColor: '#de4f11', ml: '0.5em' }} />
+              <Chip label='Ready' sx={{ color: 'white', backgroundColor: '#ff690f', ml: '0.5em', borderRadius: 1 }} />
             ) : (
               <Chip
                 label={STATUS[status].charAt(0).toUpperCase() + STATUS[status].slice(1).toLowerCase()}
                 variant='outlined'
-                sx={{ color: '#de4f11', ml: '0.5em' }}
+                sx={{ color: '#de4f11', ml: '0.5em', borderRadius: 1 }}
               />
             )}
           </Typography>
