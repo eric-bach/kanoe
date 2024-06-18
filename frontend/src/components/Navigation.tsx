@@ -11,9 +11,10 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import MenuIcon from '@mui/icons-material/Menu';
-import ChatIcon from '@mui/icons-material/Chat';
+import AirlinesIcon from '@mui/icons-material/Airlines';
 import { useNavigate } from 'react-router-dom';
 import { useAuthenticator } from '@aws-amplify/ui-react';
+import Logo from './Logo';
 
 const pages: string[] = [];
 const settings: string[] = ['Logout'];
@@ -46,27 +47,11 @@ const Navigation: React.FC = () => {
   };
 
   return (
-    <AppBar position='static' sx={{ marginTop: '-6em' }}>
+    <AppBar position='static' sx={{ marginTop: '-6em', color: '#ff690f', backgroundColor: '#fff' }}>
       <Container maxWidth='xl'>
         <Toolbar disableGutters>
-          <ChatIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
-          <Typography
-            variant='h6'
-            noWrap
-            component='a'
-            href='/'
-            sx={{
-              mr: 2,
-              display: { xs: 'none', md: 'flex' },
-              fontWeight: 700,
-              letterSpacing: '.3rem',
-              color: 'inherit',
-              textDecoration: 'none',
-            }}
-          >
-            Travel Agent
-          </Typography>
-
+          <AirlinesIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
+          <Logo />
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               size='large'
@@ -103,25 +88,6 @@ const Navigation: React.FC = () => {
               ))}
             </Menu>
           </Box>
-          <ChatIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
-          <Typography
-            variant='h5'
-            noWrap
-            component='a'
-            href='#app-bar-with-responsive-menu'
-            sx={{
-              mr: 2,
-              display: { xs: 'flex', md: 'none' },
-              flexGrow: 1,
-              fontFamily: 'monospace',
-              fontWeight: 700,
-              letterSpacing: '.3rem',
-              color: 'inherit',
-              textDecoration: 'none',
-            }}
-          >
-            Travel Agent
-          </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {pages.map((page) => (
               <Button key={page} onClick={handleCloseNavMenu} sx={{ my: 2, color: 'white', display: 'block' }}>
@@ -133,7 +99,7 @@ const Navigation: React.FC = () => {
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title='Open settings'>
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar />
+                <Avatar sx={{ backgroundColor: '#ff690f' }} />
               </IconButton>
             </Tooltip>
             <Menu

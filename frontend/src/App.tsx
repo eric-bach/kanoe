@@ -1,6 +1,7 @@
 import { Amplify, Auth } from 'aws-amplify';
 import { Authenticator, Theme, ThemeProvider, View } from '@aws-amplify/ui-react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { Typography } from '@mui/material';
 
 import Layout from './routes/Layout';
 import Chat from './routes/Chat';
@@ -16,7 +17,7 @@ Amplify.configure({
   API: {
     endpoints: [
       {
-        name: 'travel-agent-api',
+        name: 'kanoe-api',
         endpoint: import.meta.env.VITE_API_ENDPOINT,
         region: import.meta.env.VITE_REGION,
         custom_header: async () => {
@@ -35,13 +36,13 @@ const theme: Theme = {
     colors: {
       brand: {
         primary: {
-          '10': '#1976d2',
-          '20': '#1976d2',
-          '40': '#1976d2',
-          '60': '#1976d2',
-          '80': '#1976d2',
-          '90': '#1976d2',
-          '100': '#1976d2',
+          '10': '#ff690f',
+          '20': '#ff690f',
+          '40': '#ff690f',
+          '60': '#ff690f',
+          '80': '#ff690f',
+          '90': '#ff690f',
+          '100': '#ff690f',
         },
       },
     },
@@ -70,6 +71,23 @@ const formFields = {
   },
 };
 
+const components = {
+  SignIn: {
+    Header() {
+      return (
+        <>
+          <Typography variant='h5' align='center' sx={{ pt: 1 }}>
+            KANOE
+          </Typography>
+          <Typography variant='body1' align='center'>
+            Sign into your account
+          </Typography>
+        </>
+      );
+    },
+  },
+};
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -87,7 +105,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <View paddingTop='6em'>
-        <Authenticator formFields={formFields} hideSignUp={false}>
+        <Authenticator formFields={formFields} components={components} hideSignUp={true}>
           <RouterProvider router={router} />
         </Authenticator>
       </View>

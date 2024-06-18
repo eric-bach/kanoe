@@ -1,13 +1,13 @@
 {
-  "name": "travel-agent",
+  "name": "backend",
   "version": "0.1.0",
   "bin": {
-    "travel-agent": "bin/travel-agent.js"
+    "kanoe": "bin/kanoe.js"
   },
   "scripts": {
     "build": "tsc",
-    "deploy": "npm run build --prefix ../frontend && npx cdk deploy --all -c appName=travel-agent -c envName=dev --require-approval never --profile bach-dev",
-    "deploy-prod": "npm run build-prod --prefix ../frontend && npx cdk deploy --all -c appName=travel-agent -c envName=prod --require-approval never --profile bach-prod",
+    "deploy": "npm run build --prefix ../frontend && npx cdk deploy --all -c appName=kanoe -c envName=dev --require-approval never --profile bach-dev",
+    "deploy-prod": "npm run build-prod --prefix ../frontend && npx cdk deploy --all -c appName=kanoe -c envName=prod --require-approval never --profile bach-prod",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"

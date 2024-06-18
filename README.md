@@ -1,4 +1,4 @@
-## Travel Agent
+## Kanoe
 
 This sample application demonstrates the use of Agents for Amazon Bedrock to use Generative AI and LLMs to orchestrate the integration of multiple APIs to coordinate the purchase of a flight for a member using their saved credit card and available reward dollars.
 

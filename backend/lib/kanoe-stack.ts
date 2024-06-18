@@ -33,14 +33,14 @@ import { bedrock } from '@cdklabs/generative-ai-cdk-constructs';
 const dotenv = require('dotenv');
 dotenv.config();
 
-interface TravelAgentStackProps extends StackProps {
+interface KanoeStackProps extends StackProps {
   appName: string;
   envName: string;
   restApiUrl: string;
 }
 
-export class TravelAgentStack extends Stack {
-  constructor(scope: Construct, id: string, props: TravelAgentStackProps) {
+export class KanoeStack extends Stack {
+  constructor(scope: Construct, id: string, props: KanoeStackProps) {
     super(scope, id, props);
 
     /**********
@@ -57,11 +57,11 @@ export class TravelAgentStack extends Stack {
       email: UserPoolEmail.withSES({
         // @ts-ignore
         fromEmail: process.env.SENDER_EMAIL,
-        fromName: 'Travel Agent',
+        fromName: 'Kanoe',
         sesRegion: this.region,
       }),
       userVerification: {
-        emailSubject: 'Travel Agent - Verify your new account',
+        emailSubject: 'Kanoe - Verify your new account',
         emailBody: 'Thanks for signing up! Please enter the verification code {####} to confirm your account.',
         emailStyle: VerificationEmailStyle.CODE,
       },
@@ -179,7 +179,7 @@ export class TravelAgentStack extends Stack {
     // });
 
     const agent = new bedrock.Agent(this, 'BedrockAgent', {
-      name: 'TravelAgent',
+      name: 'KanoeAgent',
       foundationModel: bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_SONNET_V1_0,
       instruction:
         'You are an agent that helps members search for a flight. Members with a saved credit card and/or reward dollars can use it \
@@ -430,7 +430,7 @@ export class TravelAgentStack extends Stack {
     //**********
 
     const cloudfrontOAI = new OriginAccessIdentity(this, 'CloudFrontOAI', {
-      comment: `OAI for Travel Agent CloudFront`,
+      comment: `OAI for Kanoe Agent CloudFront`,
     });
 
     const websiteBucket = new Bucket(this, 'WebsiteBucket', {
