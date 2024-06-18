@@ -494,7 +494,7 @@ export class KanoeStack extends Stack {
       viewerCertificate:
         props.envName === 'prod'
           ? ViewerCertificate.fromAcmCertificate(certificate, {
-              aliases: ['flights.ericbach.dev'],
+              aliases: ['kanoe.ericbach.dev'],
               securityPolicy: SecurityPolicyProtocol.TLS_V1_2_2021,
               sslMethod: SSLMethod.SNI,
             })
@@ -508,7 +508,7 @@ export class KanoeStack extends Stack {
       });
       new ARecord(this, 'AliasRecord', {
         zone: existingHostedZone,
-        recordName: 'flights.ericbach.dev',
+        recordName: 'kanoe.ericbach.dev',
         target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
       });
     }
