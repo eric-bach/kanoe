@@ -99,7 +99,7 @@ const Navigation: React.FC = () => {
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title='Open settings'>
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar sx={{ backgroundColor: '#ff690f' }} />
+                <Avatar sx={{ backgroundColor: '#ff690f' }} variant='rounded' />
               </IconButton>
             </Tooltip>
             <Menu

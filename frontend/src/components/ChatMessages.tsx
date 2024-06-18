@@ -1,6 +1,6 @@
 import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
 import CircularProgress from '@mui/material/CircularProgress';
-import { Box, Button, Drawer, TextField, Grid, IconButton, List, Typography, Chip } from '@mui/material';
+import { Box, Button, Drawer, TextField, IconButton, List, Typography } from '@mui/material';
 import { Conversation } from '../common/types';
 import React from 'react';
 import ChatDebug from './ChatDebug';
@@ -91,7 +91,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, status, conversatio
             value={prompt}
             onChange={handlePromptChange}
             onKeyDown={handleKeyPress}
-            placeholder={'Ask anything...'}
+            placeholder={'How can I help you book a flight...'}
             sx={{ width: '100%' }}
             InputProps={{
               endAdornment: (
