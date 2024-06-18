@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { TravelAgentStack } from '../lib/travel-agent-stack';
+import { KanoeStack } from '../lib/kanoe-stack';
 import { ApiStack } from '../lib/api-stack';
 
 const app = new cdk.App();
@@ -22,4 +22,4 @@ const baseProps: cdk.StackProps = {
 
 const api = new ApiStack(app, `${appName}-api-${envName}`, { ...baseProps, appName, envName });
 
-new TravelAgentStack(app, `${appName}-agents-${envName}`, { ...baseProps, appName, envName, restApiUrl: api.restApiUrl });
+new KanoeStack(app, `${appName}-agents-${envName}`, { ...baseProps, appName, envName, restApiUrl: api.restApiUrl });

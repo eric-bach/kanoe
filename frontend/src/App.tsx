@@ -17,7 +17,7 @@ Amplify.configure({
   API: {
     endpoints: [
       {
-        name: 'travel-agent-api',
+        name: 'kanoe-api',
         endpoint: import.meta.env.VITE_API_ENDPOINT,
         region: import.meta.env.VITE_REGION,
         custom_header: async () => {
@@ -105,7 +105,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <View paddingTop='6em'>
-        <Authenticator formFields={formFields} components={components} hideSignUp={false}>
+        <Authenticator formFields={formFields} components={components} hideSignUp={true}>
           <RouterProvider router={router} />
         </Authenticator>
       </View>

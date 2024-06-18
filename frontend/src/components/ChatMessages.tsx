@@ -38,34 +38,30 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, status, conversatio
         <List>
           {conversation?.map((message, i) => (
             <div key={i}>
-              {message.type === 'agent' ? (
+              {message.type !== 'agent' ? (
                 <Typography
                   align='right'
                   sx={{
-                    backgroundColor: '#1976d2',
+                    backgroundColor: '#f5f5f5',
                     borderTopLeftRadius: 30,
                     borderBottomLeftRadius: 30,
                     borderTopRightRadius: 30,
                     borderBottomRightRadius: 5,
                     padding: 2,
-                    color: 'white',
                     width: '75%',
                     textAlign: 'right',
                     marginLeft: 'auto',
                     marginBottom: 2,
                   }}
                 >
-                  {message.message.replace('<<REDACTED>>', '').replace('</<REDACTED>>', '')}
-                  <br />
-                  <Button sx={{ color: 'white' }} disableRipple onClick={toggleDrawer(i, true)}>
-                    Toggle Trace
-                  </Button>
+                  {message.message}
                 </Typography>
               ) : (
                 <Typography
                   align='left'
                   sx={{
-                    backgroundColor: '#f5f5f5',
+                    color: 'white',
+                    backgroundColor: '#de4f11',
                     borderTopLeftRadius: 30,
                     borderBottomLeftRadius: 5,
                     borderTopRightRadius: 30,
@@ -76,7 +72,11 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, status, conversatio
                     marginBottom: 2,
                   }}
                 >
-                  {message.message}
+                  {message.message.replace('<<REDACTED>>', '').replace('</<REDACTED>>', '')}
+                  <br />
+                  <Button sx={{ color: 'white' }} disableRipple onClick={toggleDrawer(i, true)}>
+                    Toggle Trace
+                  </Button>
                 </Typography>
               )}
             </div>
