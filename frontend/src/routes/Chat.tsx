@@ -29,11 +29,11 @@ const Chat: React.FC = () => {
 
     client.onopen = (e) => {
       setStatus(STATUS.READY);
-      console.log('WebSocket connection established.');
+      console.log('WebSocket connection established');
     };
 
     client.onerror = (e: any) => {
-      console.error(e);
+      console.error('WebSocket error', e);
       setStatus(STATUS.DISCONNECTED);
 
       setTimeout(async () => {
@@ -50,7 +50,7 @@ const Chat: React.FC = () => {
         });
       } else {
         setStatus(STATUS.DISCONNECTED);
-        console.log('WebSocket connection closed.');
+        console.log('WebSocket connection closed');
       }
     };
 
@@ -58,7 +58,7 @@ const Chat: React.FC = () => {
     client.onmessage = async (message: any) => {
       const event = JSON.parse(message.data);
 
-      console.log('Received message', event);
+      //console.log('Received message', event);
 
       if (event.message !== 'Endpoint request timed out') {
         if (event.message == 'Internal server error') {
@@ -92,7 +92,6 @@ const Chat: React.FC = () => {
   };
 
   const handleAgentChange = async (event: SelectChangeEvent<string>) => {
-    console.log('Prompt selected', event.target.value);
     setFoundationModel(event.target.value);
 
     await setAgent(event.target.value);
@@ -117,8 +116,6 @@ const Chat: React.FC = () => {
       token: (await Auth.currentSession()).getIdToken().getJwtToken(),
     };
 
-    console.log('Sending message', data);
-
     client?.send(JSON.stringify(data));
   };
 
@@ -133,8 +130,6 @@ const Chat: React.FC = () => {
       foundationModel: fm,
       token: (await Auth.currentSession()).getIdToken().getJwtToken(),
     };
-
-    console.log('Setting agent', data);
 
     client?.send(JSON.stringify(data));
   };
