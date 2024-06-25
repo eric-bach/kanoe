@@ -36,6 +36,12 @@ This sample application demonstrates the use of Agents for Amazon Bedrock to use
   VITE_USER_POOL_CLIENT_ID=
   ```
 
+#### Manual post-deployment steps
+
+1. Set the prompt to enabled for the Agent
+
+2. Remove the KMS key for the Guardrail
+
 ### References
 
 - [Agents for Bedrock Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)

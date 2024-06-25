@@ -3,13 +3,13 @@
   "info": {
     "title": "Flight and Travel Services API",
     "version": "1.0.0",
-    "description": "Flight and Travel service APIs to search for and book flights. A membership is required to search and book for flights."
+    "description": "Flight and Travel service APIs to search for and book flights against a flight booking system."
   },
   "paths": {
     "/airport/{city}": {
       "get": {
         "summary": "Get airport code",
-        "description": "Using the provided city name, returns the airport code closest to the city",
+        "description": "Using the provided departure or destination city, returns the airport code closest to the city",
         "operationId": "getAirportCode",
         "parameters": [
           {
@@ -45,7 +45,7 @@
     "/flights/{departureId}/{arrivalId}/{date}": {
       "get": {
         "summary": "Get available flights for a member",
-        "description": "Provided the departure airport code, arrival airport code, and the date of travel, returns the available flights including the flight ID, airline, departure and arrival airport codes, departure and arrival city names, departure and arrival date and time, and the price of the trip.  A membership is required to search for flights.",
+        "description": "Provided the airport codes for the departure and destination cities along with the date of travel, this API returns the available flights including the flight ID, airline, departure and arrival airport codes, departure and arrival city names, departure and arrival date and time, and the price of the trip.",
         "operationId": "getAvailableFlights",
         "parameters": [
           {

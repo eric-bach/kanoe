@@ -58,7 +58,7 @@ const Chat: React.FC = () => {
     client.onmessage = async (message: any) => {
       const event = JSON.parse(message.data);
 
-      //console.log('Received message', event);
+      console.log('Received message', event);
 
       if (event.message !== 'Endpoint request timed out') {
         if (event.message == 'Internal server error') {
