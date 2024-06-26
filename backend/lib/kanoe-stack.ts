@@ -1,4 +1,4 @@
-import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, RemovalPolicy, Stack, StackProps, aws_kms } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
@@ -30,6 +30,7 @@ import { WebSocketLambdaAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authoriz
 import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { bedrock } from '@cdklabs/generative-ai-cdk-constructs';
 import { Topic } from '@cdklabs/generative-ai-cdk-constructs/lib/cdk-lib/bedrock';
+import { Key } from 'aws-cdk-lib/aws-kms';
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -195,7 +196,7 @@ export class KanoeStack extends Stack {
     // topic.inappropriateContent();
     // topic.legalAdvice();
     topic.createTopic({
-      name: 'flightPoliticsTopics',
+      name: 'Politics',
       definition: 'Statements or questions about politics or politicians',
       examples: ['What is the political situation in that country?'],
       type: 'DENY',
@@ -218,6 +219,8 @@ export class KanoeStack extends Stack {
       },
     ]);
 
+    const kmsKey = Key.fromKeyArn(this, 'KMSKey', guardrails.kmsKeyArn);
+
     const agent = new bedrock.Agent(this, 'BedrockAgent', {
       name: 'KanoeAgent',
       foundationModel: bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_SONNET_V1_0,
@@ -232,6 +235,7 @@ export class KanoeStack extends Stack {
       idleSessionTTL: Duration.minutes(30),
       // knowledgeBases: [kb],
       shouldPrepareAgent: true,
+      encryptionKey: kmsKey,
       // TODO: Investigate advanced prompt templates
       // promptOverrideConfiguration: {
       //   promptConfigurations: [
@@ -259,7 +263,12 @@ export class KanoeStack extends Stack {
         resources: ['*'],
       })
     );
-
+    agent.role?.addToPolicy(
+      new PolicyStatement({
+        actions: ['kms:*'],
+        resources: [kmsKey.keyArn],
+      })
+    );
     const memberAgentGroup = new bedrock.AgentActionGroup(this, 'MemberAgentGroup', {
       actionGroupName: 'MemberActionGroup',
       actionGroupExecutor: { lambda: memberAgentFunction },
@@ -375,6 +384,12 @@ export class KanoeStack extends Stack {
       new PolicyStatement({
         actions: ['bedrock:InvokeAgent'],
         resources: [`arn:aws:bedrock:*:*:agent-alias/${agent.agentId}/TSTALIASID`],
+      })
+    );
+    sendMessage.addToRolePolicy(
+      new PolicyStatement({
+        actions: ['kms:GenerateDataKey', 'kms:Decrypt'],
+        resources: [kmsKey.keyArn],
       })
     );
 

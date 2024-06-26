@@ -116,6 +116,8 @@ const Chat: React.FC = () => {
       token: (await Auth.currentSession()).getIdToken().getJwtToken(),
     };
 
+    console.log('Sending message!', data);
+
     client?.send(JSON.stringify(data));
   };
 

@@ -40,7 +40,7 @@ This sample application demonstrates the use of Agents for Amazon Bedrock to use
 
 1. Set the prompt to enabled for the Agent
 
-2. Remove the KMS key for the Guardrail
+2. Add the guardrail to the Agent
 
 ### References
 
