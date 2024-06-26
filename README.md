@@ -38,9 +38,17 @@ This sample application demonstrates the use of Agents for Amazon Bedrock to use
 
 #### Manual post-deployment steps
 
-1. Set the prompt to enabled for the Agent
+1. In the AWS console for the Bedrock Agent, set the User input under Additional settings to `Enabled`
+   ![User Input](images/user_input.png)
 
-2. Add the guardrail to the Agent
+2. In the AWS console for the Bedrock Agent, add the Guardrail to the Agent
+   ![Guardrails](images/guardrails.png)
+
+3. Prepare the Agent
+
+#### Common Errors
+
+If you receive a Cloudformation error when deploying the stack, comment out portions of the resources in kanoe-stack.ts and deploy incrementally.
 
 ### References
 
