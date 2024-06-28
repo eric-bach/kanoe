@@ -5,6 +5,7 @@ import { Typography } from '@mui/material';
 
 import Layout from './routes/Layout';
 import Chat from './routes/Chat';
+import Landing from './routes/Landing';
 
 import './index.css';
 
@@ -95,6 +96,10 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
+        Component: Landing,
+      },
+      {
+        path: '/chat',
         Component: Chat,
       },
     ],
