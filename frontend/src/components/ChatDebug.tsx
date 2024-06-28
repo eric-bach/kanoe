@@ -6,7 +6,7 @@ interface ChatDebugProps {
   debug: any;
 }
 
-const ChatDebug: React.FC<ChatDebugProps> = ({ debug }) => {
+const ChatDebug: React.FC<ChatDebugProps> = ({ debug }: ChatDebugProps) => {
   return (
     <Box sx={{ mt: '90px', mr: '20px', mb: '20px', ml: '20px' }}>
       <Typography variant='h5' sx={{ pb: '15px' }}>

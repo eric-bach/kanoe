@@ -3,7 +3,7 @@
   "info": {
     "title": "Member Services API",
     "version": "1.0.0",
-    "description": "Member service APIs for getting member information"
+    "description": "Member service APIs for getting member information from a member database"
   },
   "paths": {
     "/member/{memberNumber}": {

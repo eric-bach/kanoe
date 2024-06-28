@@ -1,4 +1,4 @@
-import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, RemovalPolicy, Stack, StackProps, aws_kms } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
@@ -29,6 +29,8 @@ import { WebSocketApi, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
 import { WebSocketLambdaAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { bedrock } from '@cdklabs/generative-ai-cdk-constructs';
+import { Topic } from '@cdklabs/generative-ai-cdk-constructs/lib/cdk-lib/bedrock';
+import { Key } from 'aws-cdk-lib/aws-kms';
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -178,20 +180,62 @@ export class KanoeStack extends Stack {
     //   instruction: 'Search for the latitude and longitude of the city provided in the prompt',
     // });
 
+    // Guardrails
+    const guardrails = new bedrock.Guardrail(this, 'BedrockGuardrails', {
+      name: 'KanoeGuardrails',
+      description: 'Guardrails for Kanoe Agent',
+      blockedInputMessaging: "That is a good question, but I am unable to answer that. Let's try something else.",
+      blockedOutputsMessaging: "I'm sorry, I am unable to provide that information. Let's try something else.",
+    });
+
+    //  Add Denied topics
+    const topic = new Topic(this, 'topic');
+    // topic.financialAdviceTopic();
+    // topic.politicalAdviceTopic();
+    // topic.medicalAdvice();
+    // topic.inappropriateContent();
+    // topic.legalAdvice();
+    topic.createTopic({
+      name: 'Politics',
+      definition: 'Statements or questions about politics or politicians',
+      examples: ['What is the political situation in that country?'],
+      type: 'DENY',
+    });
+    guardrails.addTopicPolicyConfig(topic);
+
+    // Add Word filters
+    guardrails.addWordPolicyConfig([
+      {
+        text: 'kayak',
+      },
+      {
+        text: 'costco',
+      },
+      {
+        text: 'expedia',
+      },
+      {
+        text: 'travelocity',
+      },
+    ]);
+
+    const kmsKey = Key.fromKeyArn(this, 'KMSKey', guardrails.kmsKeyArn);
+
     const agent = new bedrock.Agent(this, 'BedrockAgent', {
       name: 'KanoeAgent',
       foundationModel: bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_SONNET_V1_0,
       instruction:
-        'You are an agent that helps members search for a flight. Members with a saved credit card and/or reward dollars can use it \
-        to pay for part of all of the flight if they decide to use it. Before searching for available flights, look up the members \
-        information. Then check for available flights matching the destination city. Let the member know the options for each available \
+        'You are an agent that helps members search for a flight. Before doing anything, look up the members information using \
+        their 16-digit membership number. Members with a saved credit card and/or reward dollars can use it \
+        to pay for part of all of the flight if they decide to use it. Let the member know the options for each available \
         flight including the flight ID, airline, departure and arrival date/time, and price. If the member would like to book the \
         flight, confirm if they would like to use the saved credit card to book the flight for the member and if they would like to \
-        use any of their available reward dollars to pay for any of the flkight.  Then let them know the remaining cost of the flight \
+        use any of their available reward dollars to pay for any of the flkight. Then let them know the remaining cost of the flight \
         if they were applied, and how many reward dollars would remain.',
       idleSessionTTL: Duration.minutes(30),
       // knowledgeBases: [kb],
       shouldPrepareAgent: true,
+      encryptionKey: kmsKey,
       // TODO: Investigate advanced prompt templates
       // promptOverrideConfiguration: {
       //   promptConfigurations: [
@@ -219,33 +263,35 @@ export class KanoeStack extends Stack {
         resources: ['*'],
       })
     );
-
+    agent.role?.addToPolicy(
+      new PolicyStatement({
+        actions: ['kms:*'],
+        resources: [kmsKey.keyArn],
+      })
+    );
     const memberAgentGroup = new bedrock.AgentActionGroup(this, 'MemberAgentGroup', {
       actionGroupName: 'MemberActionGroup',
-      agent,
-      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'member_service.json'),
+      actionGroupExecutor: { lambda: memberAgentFunction },
       actionGroupState: 'ENABLED',
-      actionGroupExecutor: memberAgentFunction,
-      shouldPrepareAgent: true,
+      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'member_service.json'),
     });
+    agent.addActionGroup(memberAgentGroup);
 
     const rewardsAgentGroup = new bedrock.AgentActionGroup(this, 'RewardsAgentGroup', {
       actionGroupName: 'RewardsAgentGroup',
-      agent,
-      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'rewards_service.json'),
+      actionGroupExecutor: { lambda: rewardsAgentFunction },
       actionGroupState: 'ENABLED',
-      actionGroupExecutor: rewardsAgentFunction,
-      shouldPrepareAgent: true,
+      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'rewards_service.json'),
     });
+    agent.addActionGroup(rewardsAgentGroup);
 
     const travelAgentGroup = new bedrock.AgentActionGroup(this, 'TravelAgentGroup', {
       actionGroupName: 'TravelAgentGroup',
-      agent,
-      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'travel_service.json'),
+      actionGroupExecutor: { lambda: travelAgentFunction },
       actionGroupState: 'ENABLED',
-      actionGroupExecutor: travelAgentFunction,
-      shouldPrepareAgent: true,
+      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'travel_service.json'),
     });
+    agent.addActionGroup(travelAgentGroup);
 
     // Ensure bucket deployment completes before agent action group so the files are available
     memberAgentGroup.node.addDependency(bucketDeployment);
@@ -338,6 +384,12 @@ export class KanoeStack extends Stack {
       new PolicyStatement({
         actions: ['bedrock:InvokeAgent'],
         resources: [`arn:aws:bedrock:*:*:agent-alias/${agent.agentId}/TSTALIASID`],
+      })
+    );
+    sendMessage.addToRolePolicy(
+      new PolicyStatement({
+        actions: ['kms:GenerateDataKey', 'kms:Decrypt'],
+        resources: [kmsKey.keyArn],
       })
     );
 

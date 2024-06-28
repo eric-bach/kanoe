@@ -36,10 +36,25 @@ This sample application demonstrates the use of Agents for Amazon Bedrock to use
   VITE_USER_POOL_CLIENT_ID=
   ```
 
+#### Manual post-deployment steps
+
+1. In the AWS console for the Bedrock Agent, set the User input under Additional settings to `Enabled`
+   ![User Input](images/user_input.png)
+
+2. In the AWS console for the Bedrock Agent, add the Guardrail to the Agent
+   ![Guardrails](images/guardrails.png)
+
+3. Prepare the Agent
+
+#### Common Errors
+
+If you receive a Cloudformation error when deploying the stack, comment out portions of the resources in kanoe-stack.ts and deploy incrementally.
+
 ### References
 
 - [Agents for Bedrock Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)
 - [ReInvent Video on Agents](https://www.youtube.com/watch?v=JNZPW82uv7w&list=WL&index=13&t=2172s)
+- [Safeguard A Generative AI Travel Agent with Guardrails](https://aws.amazon.com/blogs/machine-learning/safeguard-a-generative-ai-travel-agent-with-prompt-engineering-and-guardrails-for-amazon-bedrock/)
 
 ##### IaC for Bedrock
 

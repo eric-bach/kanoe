@@ -92,7 +92,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ prompt, status, conversatio
             onChange={handlePromptChange}
             onKeyDown={handleKeyPress}
             placeholder={'How can I help you book a flight...'}
-            sx={{ width: '100%' }}
+            sx={{ width: '100%', mb: 4 }}
             InputProps={{
               endAdornment: (
                 <IconButton type='submit' onClick={(e) => submitMessage(e)}>
