@@ -54,6 +54,7 @@ If you receive a Cloudformation error when deploying the stack, comment out port
 
 - [Agents for Bedrock Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)
 - [ReInvent Video on Agents](https://www.youtube.com/watch?v=JNZPW82uv7w&list=WL&index=13&t=2172s)
+- [Safeguard A Generative AI Travel Agent with Guardrails](https://aws.amazon.com/blogs/machine-learning/safeguard-a-generative-ai-travel-agent-with-prompt-engineering-and-guardrails-for-amazon-bedrock/)
 
 ##### IaC for Bedrock
 
