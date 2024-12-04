@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@aws-cdk/aws-lambda-python-alpha": "^2.131.0-alpha.0",
-    "@cdklabs/generative-ai-cdk-constructs": "^0.1.198",
+    "@cdklabs/generative-ai-cdk-constructs": "^0.1.286",
     "aws-cdk-lib": "^2.147.1",
     "cdk-aws-lambda-powertools-layer": "^3.7.0",
     "constructs": "^10.0.0",

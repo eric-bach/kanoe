@@ -180,49 +180,33 @@ export class KanoeStack extends Stack {
     //   instruction: 'Search for the latitude and longitude of the city provided in the prompt',
     // });
 
+    const key = new Key(this, "Key");
+
     // Guardrails
     const guardrails = new bedrock.Guardrail(this, 'BedrockGuardrails', {
       name: 'KanoeGuardrails',
       description: 'Guardrails for Kanoe Agent',
       blockedInputMessaging: "That is a good question, but I am unable to answer that. Let's try something else.",
       blockedOutputsMessaging: "I'm sorry, I am unable to provide that information. Let's try something else.",
+      kmsKey: key
     });
 
     //  Add Denied topics
-    const topic = new Topic(this, 'topic');
-    // topic.financialAdviceTopic();
-    // topic.politicalAdviceTopic();
-    // topic.medicalAdvice();
-    // topic.inappropriateContent();
-    // topic.legalAdvice();
-    topic.createTopic({
+    guardrails.addDeniedTopicFilter(Topic.custom({
       name: 'Politics',
       definition: 'Statements or questions about politics or politicians',
       examples: ['What is the political situation in that country?'],
-      type: 'DENY',
-    });
-    guardrails.addTopicPolicyConfig(topic);
+    }))
 
     // Add Word filters
-    guardrails.addWordPolicyConfig([
-      {
-        text: 'kayak',
-      },
-      {
-        text: 'costco',
-      },
-      {
-        text: 'expedia',
-      },
-      {
-        text: 'travelocity',
-      },
-    ]);
-
-    const kmsKey = Key.fromKeyArn(this, 'KMSKey', guardrails.kmsKeyArn);
+    guardrails.addWordFilter('kayak');
+    guardrails.addWordFilter('costco');
+    guardrails.addWordFilter('expedia');
+    guardrails.addWordFilter('travelocity');
 
     const agent = new bedrock.Agent(this, 'BedrockAgent', {
       name: 'KanoeAgent',
+      // TODO: Amazon Nova is not supported yet so this has to be changed in the console
       foundationModel: bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_SONNET_V1_0,
       instruction:
         'You are an agent that helps members search for a flight. Before doing anything, look up the members information using \
@@ -235,7 +219,7 @@ export class KanoeStack extends Stack {
       idleSessionTTL: Duration.minutes(30),
       // knowledgeBases: [kb],
       shouldPrepareAgent: true,
-      encryptionKey: kmsKey,
+      encryptionKey: key,
       // TODO: Investigate advanced prompt templates
       // promptOverrideConfiguration: {
       //   promptConfigurations: [
@@ -266,7 +250,7 @@ export class KanoeStack extends Stack {
     agent.role?.addToPolicy(
       new PolicyStatement({
         actions: ['kms:*'],
-        resources: [kmsKey.keyArn],
+        resources: [key.keyArn],
       })
     );
     const memberAgentGroup = new bedrock.AgentActionGroup(this, 'MemberAgentGroup', {
@@ -389,7 +373,7 @@ export class KanoeStack extends Stack {
     sendMessage.addToRolePolicy(
       new PolicyStatement({
         actions: ['kms:GenerateDataKey', 'kms:Decrypt'],
-        resources: [kmsKey.keyArn],
+        resources: [key.keyArn],
       })
     );
 
