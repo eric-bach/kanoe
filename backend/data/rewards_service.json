@@ -9,16 +9,16 @@
     "/rewards/balance/{memberId}": {
       "get": {
         "summary": "Get a member's available reward dollar balance that can be applied towards purchases",
-        "description": "Using the member ID provided, returns the avilable reward dollar balance for the member",
+        "description": "Using the member ID provided, returns the available reward dollar balance for the member",
         "operationId": "getRewardBalance",
         "parameters": [
           {
             "name": "memberId",
-            "in": "query",
+            "in": "path",
             "description": "Member Id",
             "required": true,
             "schema": {
-              "type": "int"
+              "type": "integer"
             }
           }
         ],
@@ -31,11 +31,11 @@
                   "type": "object",
                   "properties": {
                     "memberId": {
-                      "type": "int",
+                      "type": "integer",
                       "description": "Member Id"
                     },
                     "balance": {
-                      "type": "decimal",
+                      "type": "number",
                       "description": "Available reward dollar balance"
                     }
                   }
