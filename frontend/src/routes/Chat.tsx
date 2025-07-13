@@ -17,7 +17,7 @@ const Chat: React.FC = () => {
   const [sessionId, setSessionId] = React.useState<string | null>(null);
   const [conversation, setConversation] = React.useState<Conversation[] | undefined>();
   const [prompt, setPrompt] = useState('');
-  const [foundationModel, setFoundationModel] = useState<string>('anthropic.claude-3-sonnet-20240229-v1:0');
+  const [foundationModel, setFoundationModel] = useState<string>('amazon.nova-lite-v1:0');
 
   const [client, setClient] = useState<WebSocket>();
 
@@ -154,6 +154,7 @@ const Chat: React.FC = () => {
             )}
           </Typography>
           <Select value={foundationModel} onChange={(e) => handleAgentChange(e)} sx={{ mt: '-0.5em', ml: 'auto' }}>
+            <MenuItem value='amazon.nova-lite-v1:0'>Amazon Nova Lite v1.0</MenuItem>
             <MenuItem value='anthropic.claude-v2:1'>Anthropic Claude v2.1</MenuItem>
             <MenuItem value='anthropic.claude-3-haiku-20240307-v1:0'>Anthropic Claude v3 Haiku</MenuItem>
             <MenuItem value='anthropic.claude-3-sonnet-20240229-v1:0'>Anthropic Claude v3 Sonnet</MenuItem>

@@ -179,12 +179,15 @@ export class KanoeStack extends Stack {
     //   instruction: 'Search for the latitude and longitude of the city provided in the prompt',
     // });
 
+    const key = new Key(this, "Key");
+
     // Guardrails
     const guardrails = new bedrock.Guardrail(this, 'BedrockGuardrails', {
       name: 'KanoeGuardrails',
       description: 'Guardrails for Kanoe Agent',
       blockedInputMessaging: "That is a good question, but I am unable to answer that. Let's try something else.",
       blockedOutputsMessaging: "I'm sorry, I am unable to provide that information. Let's try something else.",
+      kmsKey: key
     });
 
     //  Add Denied topics
@@ -213,6 +216,7 @@ export class KanoeStack extends Stack {
 
     const agent = new bedrock.Agent(this, 'BedrockAgent', {
       name: 'KanoeAgent',
+      // TODO: Amazon Nova is not supported yet so this has to be changed in the console
       foundationModel: bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_SONNET_V1_0,
       instruction:
         'You are an agent that helps members search for a flight. Before doing anything, look up the members information using \
@@ -254,7 +258,6 @@ export class KanoeStack extends Stack {
         resources: ['*'],
       })
     );
-
     const memberAgentGroup = new bedrock.AgentActionGroup({
       name: 'MemberActionGroup',
       executor: bedrock.ActionGroupExecutor.fromlambdaFunction(memberAgentFunction),
