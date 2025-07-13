@@ -31,7 +31,7 @@
                   "type": "object",
                   "properties": {
                     "id": {
-                      "type": "int",
+                      "type": "string",
                       "description": "The airport code for the city"
                     }
                   }
@@ -87,7 +87,7 @@
                     "type": "object",
                     "properties": {
                       "id": {
-                        "type": "int",
+                        "type": "integer",
                         "description": "This is the flight Id used to book the flight"
                       },
                       "airline": {
@@ -119,7 +119,7 @@
                         "description": "The arrival date and time"
                       },
                       "price": {
-                        "type": "decimal",
+                        "type": "number",
                         "description": "The price of the trip"
                       }
                     }
@@ -142,13 +142,14 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["memberId", "flightId"],
                 "properties": {
                   "memberId": {
-                    "type": "int",
+                    "type": "integer",
                     "description": "Member Id"
                   },
                   "flightId": {
-                    "type": "int",
+                    "type": "integer",
                     "description": "Flight Id"
                   }
                 }

@@ -29,8 +29,7 @@ import { WebSocketApi, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
 import { WebSocketLambdaAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { bedrock } from '@cdklabs/generative-ai-cdk-constructs';
-import { Topic } from '@cdklabs/generative-ai-cdk-constructs/lib/cdk-lib/bedrock';
-import { Key } from 'aws-cdk-lib/aws-kms';
+import { GuardrailAction, Topic } from '@cdklabs/generative-ai-cdk-constructs/lib/cdk-lib/bedrock';
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -192,17 +191,28 @@ export class KanoeStack extends Stack {
     });
 
     //  Add Denied topics
-    guardrails.addDeniedTopicFilter(Topic.custom({
-      name: 'Politics',
-      definition: 'Statements or questions about politics or politicians',
-      examples: ['What is the political situation in that country?'],
-    }))
+    // guardrails.addDeniedTopicFilter(Topic.FINANCIAL_ADVICE);
+    // guardrails.addDeniedTopicFilter(Topic.POLITICAL_ADVICE);
+    // guardrails.addDeniedTopicFilter(Topic.MEDICAL_ADVICE);
+    // guardrails.addDeniedTopicFilter(Topic.INAPPROPRIATE_CONTENT);
+    // guardrails.addDeniedTopicFilter(Topic.LEGAL_ADVICE);
+    guardrails.addDeniedTopicFilter(
+      Topic.custom({
+        name: 'Politics',
+        definition: 'Statements or questions about politics or politicians',
+        examples: ['What is the political situation in that country?'],
+        inputAction: GuardrailAction.BLOCK,
+        inputEnabled: true,
+        outputAction: GuardrailAction.NONE,
+        outputEnabled: true,
+      })
+    );
 
     // Add Word filters
-    guardrails.addWordFilter('kayak');
-    guardrails.addWordFilter('costco');
-    guardrails.addWordFilter('expedia');
-    guardrails.addWordFilter('travelocity');
+    guardrails.addWordFilter({ text: 'kayak' });
+    guardrails.addWordFilter({ text: 'costco' });
+    guardrails.addWordFilter({ text: 'expedia' });
+    guardrails.addWordFilter({ text: 'travelocity' });
 
     const agent = new bedrock.Agent(this, 'BedrockAgent', {
       name: 'KanoeAgent',
@@ -211,15 +221,14 @@ export class KanoeStack extends Stack {
       instruction:
         'You are an agent that helps members search for a flight. Before doing anything, look up the members information using \
         their 16-digit membership number. Members with a saved credit card and/or reward dollars can use it \
-        to pay for part of all of the flight if they decide to use it. Let the member know the options for each available \
+        to pay for part or all of the flight if they decide to use it. Let the member know the options for each available \
         flight including the flight ID, airline, departure and arrival date/time, and price. If the member would like to book the \
         flight, confirm if they would like to use the saved credit card to book the flight for the member and if they would like to \
-        use any of their available reward dollars to pay for any of the flkight. Then let them know the remaining cost of the flight \
+        use any of their available reward dollars to pay for any of the flight. Then let them know the remaining cost of the flight \
         if they were applied, and how many reward dollars would remain.',
       idleSessionTTL: Duration.minutes(30),
       // knowledgeBases: [kb],
       shouldPrepareAgent: true,
-      encryptionKey: key,
       // TODO: Investigate advanced prompt templates
       // promptOverrideConfiguration: {
       //   promptConfigurations: [
@@ -239,48 +248,42 @@ export class KanoeStack extends Stack {
       //   ],
       // },
     });
-    agent.role?.addManagedPolicy({ managedPolicyArn: 'arn:aws:iam::aws:policy/AmazonS3FullAccess' });
-    agent.role?.addManagedPolicy({ managedPolicyArn: 'arn:aws:iam::aws:policy/AWSLambda_FullAccess' });
-    agent.role?.addToPolicy(
+    // Cast the role to concrete Role class to access addToPolicy method
+    const agentRole = agent.role as Role;
+    agentRole.addManagedPolicy({ managedPolicyArn: 'arn:aws:iam::aws:policy/AmazonS3FullAccess' });
+    agentRole.addManagedPolicy({ managedPolicyArn: 'arn:aws:iam::aws:policy/AWSLambda_FullAccess' });
+    agentRole.addToPolicy(
       new PolicyStatement({
         actions: ['bedrock:*'],
         resources: ['*'],
       })
     );
-    agent.role?.addToPolicy(
-      new PolicyStatement({
-        actions: ['kms:*'],
-        resources: [key.keyArn],
-      })
-    );
-    const memberAgentGroup = new bedrock.AgentActionGroup(this, 'MemberAgentGroup', {
-      actionGroupName: 'MemberActionGroup',
-      actionGroupExecutor: { lambda: memberAgentFunction },
-      actionGroupState: 'ENABLED',
-      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'member_service.json'),
+    const memberAgentGroup = new bedrock.AgentActionGroup({
+      name: 'MemberActionGroup',
+      executor: bedrock.ActionGroupExecutor.fromlambdaFunction(memberAgentFunction),
+      enabled: true,
+      apiSchema: bedrock.S3ApiSchema.fromS3File(bucket, 'member_service.json'),
     });
     agent.addActionGroup(memberAgentGroup);
 
-    const rewardsAgentGroup = new bedrock.AgentActionGroup(this, 'RewardsAgentGroup', {
-      actionGroupName: 'RewardsAgentGroup',
-      actionGroupExecutor: { lambda: rewardsAgentFunction },
-      actionGroupState: 'ENABLED',
-      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'rewards_service.json'),
+    const rewardsAgentGroup = new bedrock.AgentActionGroup({
+      name: 'RewardsAgentGroup',
+      executor: bedrock.ActionGroupExecutor.fromlambdaFunction(rewardsAgentFunction),
+      enabled: true,
+      apiSchema: bedrock.S3ApiSchema.fromS3File(bucket, 'rewards_service.json'),
     });
     agent.addActionGroup(rewardsAgentGroup);
 
-    const travelAgentGroup = new bedrock.AgentActionGroup(this, 'TravelAgentGroup', {
-      actionGroupName: 'TravelAgentGroup',
-      actionGroupExecutor: { lambda: travelAgentFunction },
-      actionGroupState: 'ENABLED',
-      apiSchema: bedrock.S3ApiSchema.fromBucket(bucket, 'travel_service.json'),
+    const travelAgentGroup = new bedrock.AgentActionGroup({
+      name: 'TravelAgentGroup',
+      executor: bedrock.ActionGroupExecutor.fromlambdaFunction(travelAgentFunction),
+      enabled: true,
+      apiSchema: bedrock.S3ApiSchema.fromS3File(bucket, 'travel_service.json'),
     });
     agent.addActionGroup(travelAgentGroup);
 
     // Ensure bucket deployment completes before agent action group so the files are available
-    memberAgentGroup.node.addDependency(bucketDeployment);
-    rewardsAgentGroup.node.addDependency(bucketDeployment);
-    travelAgentGroup.node.addDependency(bucketDeployment);
+    agent.node.addDependency(bucketDeployment);
 
     // Grant Bedrock Agent permissions to invoke the Lambda function
     memberAgentFunction.addPermission('InvokeFunction', {
@@ -368,12 +371,6 @@ export class KanoeStack extends Stack {
       new PolicyStatement({
         actions: ['bedrock:InvokeAgent'],
         resources: [`arn:aws:bedrock:*:*:agent-alias/${agent.agentId}/TSTALIASID`],
-      })
-    );
-    sendMessage.addToRolePolicy(
-      new PolicyStatement({
-        actions: ['kms:GenerateDataKey', 'kms:Decrypt'],
-        resources: [key.keyArn],
       })
     );
 
